@@ -49,7 +49,7 @@ export function getConfig() {
 
 function defaultHandler(data, app, response, request, errorFunc) { return {code: 200} }
 
-export function post(handler = defaultHandler, config = defaultConfig.post) {
+export function post(handler = defaultHandler, route, config = defaultConfig.post) {
     config = configValidator(defaultConfig.post, config);
     return (request, response,  app) => {
         let dataRaw = "";
@@ -73,7 +73,8 @@ export function post(handler = defaultHandler, config = defaultConfig.post) {
                         request: data,
                         url: request.url,
                         query,
-                        params: queryParse(request.params, !config.stringRouteParams)
+                        params: queryParse(request.params, !config.stringRouteParams),
+                        afterRoute: request.url.substring(route.length - 1)
                     }, app, response, request, errorFunc);
                     let resRaw, res, code;
                     if (a === undefined) {
@@ -113,7 +114,7 @@ export function post(handler = defaultHandler, config = defaultConfig.post) {
     }
 }
 
-export function get(handler = defaultHandler, config = defaultConfig.get) {
+export function get(handler = defaultHandler, route, config = defaultConfig.get) {
     config = configValidator(defaultConfig.get, config);
     return (request, response, app) => {
         let query = "";
@@ -126,7 +127,8 @@ export function get(handler = defaultHandler, config = defaultConfig.get) {
             let a = handler({
                 url: request.url,
                 query,
-                params: queryParse(request.params, !config.stringRouteParams)
+                params: queryParse(request.params, !config.stringRouteParams),
+                afterRoute: request.url.substring(route.length - 1)
             }, app, response, request, errorFunc)
             let resRaw, res, code;
             if (a === undefined) {
@@ -159,7 +161,7 @@ export function get(handler = defaultHandler, config = defaultConfig.get) {
     }
 }
 
-export function formData(handler = defaultHandler, config = defaultConfig.formData) {
+export function formData(handler = defaultHandler, route, config = defaultConfig.formData) {
     config = configValidator(defaultConfig.formData, config);
     return (request, response, app) => {
         let query = "", data;
@@ -175,7 +177,8 @@ export function formData(handler = defaultHandler, config = defaultConfig.formDa
                 files: request.files,
                 url: request.url,
                 query,
-                params: queryParse(request.params, !config.stringRouteParams)
+                params: queryParse(request.params, !config.stringRouteParams),
+                afterRoute: request.url.substring(route.length - 1)
             }, app, response, request, errorFunc)
             let resRaw, res, code;
             if (a === undefined) {

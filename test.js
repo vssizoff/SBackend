@@ -14,10 +14,10 @@ export default {
     },
     "/test_formData": {
         callback(data, app, response, request) {
-            app.logger.message(data.request);
-            // app.logger.message(data.files);
-            app.logger.message(data.url);
-            app.logger.message(data.query);
+            // app.logger.message(data.request);
+            app.logger.message(Object.keys(data.files.file));
+            // app.logger.message(data.url);
+            // app.logger.message(data.query);
             return {
                 code: 200,
                 response: "ok"
@@ -48,5 +48,15 @@ export default {
     },
     // "/log": {
     //     path: path.resolve("./latest.log")
-    // }
+    // },
+    "/test2/*": {
+        callback(data, app, response) {
+            app.logger.message(data.afterRoute);
+            response.sendFile(`${path.resolve("./sBackend")}/${data.afterRoute}`);
+            return {
+                code: 200
+            }
+        },
+        type: "get"
+    }
 }

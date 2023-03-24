@@ -45,13 +45,13 @@ export default class Handler {
             case "raw":
                 break;
             case "get":
-                this.callback = wrappers.get(this.callback, this.config)
+                this.callback = wrappers.get(this.callback, this.route, this.config)
                 break;
             case "post":
-                this.callback = wrappers.post(this.callback, this.config)
+                this.callback = wrappers.post(this.callback, this.route, this.config)
                 break;
             case "post.formData":
-                this.callback = wrappers.formData(this.callback, this.config)
+                this.callback = wrappers.formData(this.callback, this.route, this.config)
                 break;
             default:
                 this.app.logger.error("Not supported wrapper")
