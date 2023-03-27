@@ -35,7 +35,12 @@ function _JsonStringifyColours(object) {
                         // str += `\n    ${list2[i]}`;
                         list.push(`    ${list2[i]}`);
                     }
-                    list.push(list2[list2.length - 1]);
+                    if (list2.length >= 2) {
+                        list.push(list2[list2.length - 1]);
+                    }
+                    break;
+                case "function":
+                    list.push(chalk.magenta("function"));
                     break;
             }
         });
@@ -68,7 +73,9 @@ function _JsonStringifyColours(object) {
                         // str += `\n    ${list2[i]}`;
                         list.push(`    ${list2[i]}`);
                     }
-                    list.push(list2[list2.length - 1]);
+                    if (list2.length >= 2) {
+                        list.push(list2[list2.length - 1]);
+                    }
                     break;
                 case "function":
                     list.push(`"${key}": ${chalk.magenta("function")}`);
@@ -97,6 +104,8 @@ export function stringifyColours(object) {
                 return chalk.greenBright(`'${object}'`);
             case "boolean":
                 return chalk.yellow(`${object}`);
+            case "function":
+                return chalk.magenta("function");
             default: return object
         }
     }
@@ -110,7 +119,9 @@ export function stringifyColours(object) {
             str += ',';
         }
     }
-    str += `\n${list[list.length - 1]}`;
+    if (list.length >= 2) {
+        str += `\n${list[list.length - 1]}`;
+    }
     return str;
 }
 
@@ -147,7 +158,12 @@ function _JsonStringify(object, indent = "    ") {
                     for (let i = 1; i < list2.length - 1; i++) {
                         list.push(`${indent}${list2[i]}`);
                     }
-                    list.push(list2[list2.length - 1]);
+                    if (list2.length >= 2) {
+                        list.push(list2[list2.length - 1]);
+                    }
+                    break;
+                case "function":
+                    list.push(`function`);
                     break;
             }
         });
@@ -180,7 +196,9 @@ function _JsonStringify(object, indent = "    ") {
                         // str += `\n    ${list2[i]}`;
                         list.push(`    ${list2[i]}`);
                     }
-                    list.push(list2[list2.length - 1]);
+                    if (list2.length >= 2) {
+                        list.push(list2[list2.length - 1]);
+                    }
                     break;
                 case "function":
                     list.push(`"${key}": function`);
@@ -209,6 +227,8 @@ export function stringify(object, indent = "    ", endl = true) {
                 return `'${object}'`;
             case "boolean":
                 return `${object}`;
+            case "function":
+                return "function";
             default: return object
         }
     }
@@ -222,7 +242,9 @@ export function stringify(object, indent = "    ", endl = true) {
             str += ',';
         }
     }
-    str += `${endl ? '\n' : ""}${list[list.length - 1]}`;
+    if (list.length >= 2) {
+        str += `${endl ? '\n' : ""}${list[list.length - 1]}`;
+    }
     return str;
 }
 

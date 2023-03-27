@@ -8,6 +8,7 @@ let defaultConfig = {
         parseQuery: false,
         stringQuery: false,
         stringRouteParams: false,
+        stringHeaders: false,
         logging: true,
         logRequest: true,
         logResponse: true,
@@ -19,6 +20,7 @@ let defaultConfig = {
         parseQuery: false,
         stringQuery: false,
         stringRouteParams: false,
+        stringHeaders: false,
         logging: true,
         logRequest: true,
         logResponse: true,
@@ -30,6 +32,7 @@ let defaultConfig = {
         parseQuery: true,
         stringQuery: false,
         stringRouteParams: false,
+        stringHeaders: false,
         logging: true,
         logResponse: true,
         ifErr: ""
@@ -74,20 +77,26 @@ export function post(handler = defaultHandler, route, config = defaultConfig.pos
                         url: request.url,
                         query,
                         params: queryParse(request.params, !config.stringRouteParams),
+                        headers: queryParse(request.headers, !config.stringHeaders),
                         afterRoute: request.url.substring(route.length - 1)
                     }, app, response, request, errorFunc);
-                    let resRaw, res, code;
+                    let resRaw, res, code, headers;
                     if (a === undefined) {
                         resRaw = undefined;
                         code = undefined;
+                        headers = undefined;
                     }
                     else {
                         resRaw = a.response;
                         code = a.code;
+                        headers = a.headers;
                     }
                     res = resRaw;
                     if (config.outputFormat === "object" && resRaw !== undefined && typeof resRaw === "object"){
                         res = JSON.stringify(resRaw);
+                    }
+                    if (headers !== undefined) {
+                        response.set(headers);
                     }
                     if (code !== undefined) {
                         response.status(code);
@@ -128,20 +137,26 @@ export function get(handler = defaultHandler, route, config = defaultConfig.get)
                 url: request.url,
                 query,
                 params: queryParse(request.params, !config.stringRouteParams),
+                headers: queryParse(request.headers, !config.stringHeaders),
                 afterRoute: request.url.substring(route.length - 1)
             }, app, response, request, errorFunc)
-            let resRaw, res, code;
+            let resRaw, res, code, headers;
             if (a === undefined) {
                 resRaw = undefined;
                 code = undefined;
+                headers = undefined;
             }
             else {
                 resRaw = a.response;
                 code = a.code;
+                headers = a.headers;
             }
             res = resRaw
             if (config.outputFormat === "object" && resRaw !== undefined && typeof resRaw === "object"){
                 res = JSON.stringify(resRaw);
+            }
+            if (headers !== undefined) {
+                response.set(headers);
             }
             if (code !== undefined) {
                 response.status(code);
@@ -178,20 +193,26 @@ export function formData(handler = defaultHandler, route, config = defaultConfig
                 url: request.url,
                 query,
                 params: queryParse(request.params, !config.stringRouteParams),
+                headers: queryParse(request.headers, !config.stringHeaders),
                 afterRoute: request.url.substring(route.length - 1)
             }, app, response, request, errorFunc)
-            let resRaw, res, code;
+            let resRaw, res, code, headers;
             if (a === undefined) {
                 resRaw = undefined;
                 code = undefined;
+                headers = undefined;
             }
             else {
                 resRaw = a.response;
                 code = a.code;
+                headers = a.headers;
             }
             res = resRaw;
             if (config.outputFormat === "object" && resRaw !== undefined && typeof resRaw === "object"){
                 res = JSON.stringify(resRaw);
+            }
+            if (headers !== undefined) {
+                response.set(headers);
             }
             if (code !== undefined) {
                 response.status(code);

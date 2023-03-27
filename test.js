@@ -30,7 +30,10 @@ export default {
             app.logger.message(data);
             return {
                 code: 200,
-                response: null
+                response: null,
+                headers: {
+                    test: undefined
+                }
             }
         },
         inputFormat: "raw",
