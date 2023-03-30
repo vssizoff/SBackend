@@ -50,7 +50,7 @@ app.logger.message("test");
 
 --++== test v0.0.0; port: 8888 ==++--
 ```
-### In latest.log
+### In latest.log:
 ```log
 2023.3.30 14:22:44: info: test
 --++== test v0.0.0; port: 8888 ==++--
