@@ -114,7 +114,7 @@ export default class SBackend {
     }
 
     formData(route, callback, config = defaultConfig.handlerConfig, routePush = true) {
-        this.addHandler(route, "post", callback, {...config, wrapper: "formData"}, routePush)
+        this.addHandler(route, "post", callback, {...config, wrapper: "post.formData"}, routePush)
     }
 
     addFolder(route, path, logging = true){
