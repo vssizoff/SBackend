@@ -1,4 +1,12 @@
-***Download: https://disk.yandex.ru/d/S16Krj_BUvpbOg***
+# Installation
+* Init node project
+* Type this in console
+```
+npm i express
+npm i express-fileupload
+npm i chalk
+```
+* Extract [this archive](https://disk.yandex.ru/d/S16Krj_BUvpbOg) to root of your project
 # Starting
 ## Creating an app
 #### esm
