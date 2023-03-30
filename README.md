@@ -518,6 +518,34 @@ app.addHandlers({
 
 app.start();
 ```
+## From json
+### main.js
+```javascript
+import SBackend from "./sBackend/index.mjs";
+import path from "path";
+import files from "./files.json" assert { type: "json" };
+
+let app = new SBackend({
+    port: 8888,
+    name: "test",
+    version: "0.0.0",
+    logPath: "./latest.log"
+});
+
+Object.keys(files).forEach(route => {
+    app.addFile(route, path.resolve(files[route]));
+});
+
+app.start();
+```
+### Files.json
+```json
+{
+  "/log": "./latest.log",
+  "/srequest": "./sRequest.js",
+  "/functions": "./sBackend/files.mjs"
+}
+```
 # Files (utf-8)
 ## Read file
 ```javascript
