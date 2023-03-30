@@ -64,7 +64,7 @@ app.start();
 app.logger.message("test");
 ```
 This message will be logged before *"--++== test v0.0.0; port: 8888 ==++--"*.  
-How can we log handle server starting? Using start callback.
+How can we handle server starting? Using start callback.
 ```javascript
 app.start(() => {
     app.logger.message("test");
