@@ -263,7 +263,9 @@ export default {
 #### Server will log (after handling requests):
 ```log
 --++== test v0.0.0; port: 8888 ==++--
+
 2023.3.30 17:45:0: info: POST
+
 2023.3.30 17:45:0: info: {
     "request": {
         "test": "test",
@@ -285,12 +287,15 @@ export default {
     },
     "afterRoute": "t?test=test&test0=0&test1=true"
 }
+
 2023.3.30 17:45:0: request: Handled request to /post?test=test&test0=0&test1=true. Code: 200. Request: {
     "test": "test",
     "test0": 0,
     "test1": true
-}. Response: ok
+}. Response: "ok"
+
 2023.3.30 17:45:2: info: FormData
+
 2023.3.30 17:45:2: info: {
     "request": {
         "test": "test",
@@ -313,9 +318,17 @@ export default {
     },
     "afterRoute": "a?test=test&test0=0&test1=true"
 }
-2023.3.30 17:45:2: request: Handled request to /formdata?test=test&test0=0&test1=true. Code: 200. Request: {"test":"test","test0":0,"test1":true}. Response: ok
+
+2023.3.30 17:45:2: request: Handled request to /formdata?test=test&test0=0&test1=true. Code: 200. Request: {
+    "test": "test",
+    "test0": 0,
+    "test1": true
+}. Response: "ok"
+
 2023.3.30 17:45:8: info: raw POST
+
 2023.3.30 17:45:10: info: GET
+
 2023.3.30 17:45:10: info: {
     "url": "/get?test=test&test0=0&test1=true",
     "query": {
@@ -334,6 +347,8 @@ export default {
     },
     "afterRoute": "t?test=test&test0=0&test1=true"
 }
-2023.3.30 17:45:10: request: Handled request to /get?test=test&test0=0&test1=true. Code: 200. Response: ok
+
+2023.3.30 17:45:10: request: Handled request to /get?test=test&test0=0&test1=true. Code: 200. Response: "ok"
+
 2023.3.30 17:45:12: info: raw GET
 ```
