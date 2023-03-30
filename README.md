@@ -80,13 +80,6 @@ app.start(() => {
 ## Single handler
 ### POST
 ```javascript
-let app = new SBackend({
-    port: 8888,
-    name: "test",
-    version: "0.0.0",
-    logPath: "./latest.log"
-});
-
 app.post("/post", (data, app, response, request, errorFunc) => {
     app.logger.message(data);
     return {
@@ -94,10 +87,8 @@ app.post("/post", (data, app, response, request, errorFunc) => {
         response: "ok"
     };
 });
-
-app.start();
 ```
-#### Server will log:
+#### Server will log (after handling request):
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
@@ -123,13 +114,6 @@ app.start();
 ```
 ### GET
 ```javascript
-let app = new SBackend({
-    port: 8888,
-    name: "test",
-    version: "0.0.0",
-    logPath: "./latest.log"
-});
-
 app.get("/get", (data, app, response, request, errorFunc) => {
     app.logger.message(data);
     return {
@@ -137,10 +121,8 @@ app.get("/get", (data, app, response, request, errorFunc) => {
         response: "ok"
     };
 });
-
-app.start();
 ```
-#### Server will log:
+#### Server will log (after handling request):
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
@@ -163,13 +145,6 @@ app.start();
 ```
 ### FormData
 ```javascript
-let app = new SBackend({
-    port: 8888,
-    name: "test",
-    version: "0.0.0",
-    logPath: "./latest.log"
-});
-
 app.formData("/formdata", (data, app, response, request, errorFunc) => {
     app.logger.message(data);
     return {
@@ -177,10 +152,8 @@ app.formData("/formdata", (data, app, response, request, errorFunc) => {
         response: "ok"
     };
 });
-
-app.start();
 ```
-#### Server will log:
+#### Server will log (after handling request):
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
@@ -212,4 +185,155 @@ app.start();
     "test0": 0,
     "test1": true
 }. Response: "ok"
+```
+### Raw POST
+#### No request body parsing, no logging, no error handling.
+```javascript
+app.rawPost("/post", (request, response, app) => {
+    response.status(200);
+    response.end("ok");
+});
+```
+#### Server will log only init message.
+### Raw GET
+#### No request body parsing, no logging, no error handling.
+```javascript
+app.rawGet("/post", (request, response, app) => {
+    response.status(200);
+    response.end("ok");
+});
+```
+#### Server will log only init message.
+## Multiple handlers
+### main.js
+```javascript
+import SBackend from "./sBackend/index.mjs";
+import handlers from "./handlers.js";
+
+let app = new SBackend({
+    port: 8888,
+    name: "test",
+    version: "0.0.0",
+    logPath: "./latest.log"
+});
+
+app.addHandlers(handlers);
+
+app.start();
+```
+### handlers.js
+```javascript
+export default {
+    post: {
+        "/post": {
+            callback(data, app, response, request, errorFunc) {
+                app.logger.message("POST");
+                app.logger.message(data);
+            }
+        },
+        "/formdata": {
+            callback(data, app, response, request, errorFunc) {
+                app.logger.message("FormData");
+                app.logger.message(data);
+            }
+        },
+        "/post/raw": {
+            callback(response, request, app) {
+                app.logger.message("raw POST");
+            },
+            wrapper: "raw"
+        }
+    },
+    get: {
+        "/get": {
+            callback(data, app, response, request, errorFunc) {
+                app.logger.message("GET");
+                app.logger.message(data);
+            }
+        },
+        "/get/raw": {
+            callback(response, request, app) {
+                app.logger.message("raw GET");
+            },
+            wrapper: "raw"
+        }
+    }
+}
+```
+#### Server will log (after handling requests):
+```log
+--++== test v0.0.0; port: 8888 ==++--
+2023.3.30 17:45:0: info: POST
+2023.3.30 17:45:0: info: {
+    "request": {
+        "test": "test",
+        "test0": 0,
+        "test1": true
+    },
+    "url": "/post?test=test&test0=0&test1=true",
+    "query": "test=test&test0=0&test1=true"
+    "params": {},
+    "headers": {
+        "content-type": "application/json",
+        "user-agent": "PostmanRuntime/7.31.3",
+        "accept": "*/*",
+        "postman-token": "750d0b9f-a395-4bae-8022-a15f42354219",
+        "host": "localhost:8888",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "content-length": 61
+    },
+    "afterRoute": "t?test=test&test0=0&test1=true"
+}
+2023.3.30 17:45:0: request: Handled request to /post?test=test&test0=0&test1=true. Code: 200. Request: {
+    "test": "test",
+    "test0": 0,
+    "test1": true
+}. Response: ok
+2023.3.30 17:45:2: info: FormData
+2023.3.30 17:45:2: info: {
+    "request": {
+        "test": "test",
+        "test0": 0,
+        "test1": true
+    },
+    "files": null,
+    "url": "/formdata?test=test&test0=0&test1=true",
+    "query": "test=test&test0=0&test1=true"
+    "params": {},
+    "headers": {
+        "user-agent": "PostmanRuntime/7.31.3",
+        "accept": "*/*",
+        "postman-token": "a6279535-578b-4300-92f2-8b4ba2d0fd9f",
+        "host": "localhost:8888",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "content-type": "multipart/form-data; boundary=--------------------------763107324175412377365942",
+        "content-length": 376
+    },
+    "afterRoute": "a?test=test&test0=0&test1=true"
+}
+2023.3.30 17:45:2: request: Handled request to /formdata?test=test&test0=0&test1=true. Code: 200. Request: {"test":"test","test0":0,"test1":true}. Response: ok
+2023.3.30 17:45:8: info: raw POST
+2023.3.30 17:45:10: info: GET
+2023.3.30 17:45:10: info: {
+    "url": "/get?test=test&test0=0&test1=true",
+    "query": {
+        "test": "test",
+        "test0": 0,
+        "test1": true
+    }
+    "params": {},
+    "headers": {
+        "user-agent": "PostmanRuntime/7.31.3",
+        "accept": "*/*",
+        "postman-token": "2797a3f5-4868-4db6-8804-8d301cd67f55",
+        "host": "localhost:8888",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive"
+    },
+    "afterRoute": "t?test=test&test0=0&test1=true"
+}
+2023.3.30 17:45:10: request: Handled request to /get?test=test&test0=0&test1=true. Code: 200. Response: ok
+2023.3.30 17:45:12: info: raw GET
 ```

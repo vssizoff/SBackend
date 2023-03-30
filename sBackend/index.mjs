@@ -49,7 +49,7 @@ export function handlersFormat(handlers, app) {
     }
     let flag = true;
     Object.keys(handlers).forEach(key => {
-        if (key !== "post" && key !== "formData") {
+        if (key !== "post" && key !== "get") {
             flag = false;
         }
     });
