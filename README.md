@@ -204,6 +204,24 @@ app.rawGet("/post", (request, response, app) => {
 });
 ```
 #### Server will log only init message.
+### Other type
+```javascript
+import SBackend from "./sBackend/index.mjs";
+
+let app = new SBackend({
+    port: 8888,
+    name: "test",
+    version: "0.0.0",
+    logPath: "./latest.log"
+});
+
+app.addHandler("/other", "put", (request, response, app) => {
+    response.status(200);
+    response.end("ok");
+});
+
+app.start();
+```
 ## Multiple handlers
 ### main.js
 ```javascript
@@ -497,6 +515,137 @@ app.addHandlers({
         dir: path.resolve(".")
     }
 })
+
+app.start();
+```
+# Files (utf-8)
+## Read file
+```javascript
+import * as files from "./sBackend/files.mjs";
+
+console.log(files.read("test.txt"));
+console.log(files.readObject("test.json"));
+```
+## Write file
+```javascript
+import * as files from "./sBackend/files.mjs";
+
+files.write("test.txt", "SBackend test file");
+files.writeObject("test.json", {
+    test: "test",
+    test0: 0,
+    test1: true
+});
+```
+## Append to file
+```javascript
+import * as files from "./sBackend/files.mjs";
+
+files.write("test.txt", "SBackend");
+files.append("test.txt", " test file");
+console.log(files.read("test.txt")) // SBackend test file
+```
+## File class
+```javascript
+import * as files from "./sBackend/files.mjs";
+
+let file = new files.File("test.txt");
+
+file.write("SBackend");
+file.append(" test file");
+console.log(file.read()); // SBackend test file
+
+let file2 = new files.File("test.json");
+
+file.writeObject({
+    port: 8888,
+    name: "test",
+    version: "0.0.0",
+    logPath: "./latest.log"
+});
+console.log(file.read()) // {"test": "test", "test0": 0, "test1": true}
+```
+# Other
+## Logging routes
+```javascript
+import SBackend from "./sBackend/index.mjs";
+import handlers from "./handlers.js";
+import path from "path";
+
+let app = new SBackend({
+    port: 8888,
+    name: "test",
+    version: "0.0.0",
+    logPath: "./latest.log"
+});
+
+app.addHandlers(handlers);
+
+app.addHandlers({
+    "/some_file": {
+        path: path.resolve("./main.js")
+    },
+    "/folder": {
+        dir: path.resolve(".")
+    }
+})
+
+app.start(() => {
+    app.logger.message(app.routes);
+});
+```
+#### Server will log:
+```
+--++== test v0.0.0; port: 8888 ==++--
+
+2023.3.30 18:27:13: info: [
+    {
+        "route": "/post",
+        "type": "post",
+        "wrapper": "post"
+    },
+    {
+        "route": "/formdata",
+        "type": "post",
+        "wrapper": "post.formData"
+    },
+    {
+        "route": "/post/raw",
+        "type": "post",
+        "wrapper": "raw"
+    },
+    {
+        "route": "/get",
+        "type": "get",
+        "wrapper": "get"
+    },
+    {
+        "route": "/get/raw",
+        "type": "get",
+        "wrapper": "raw"
+    },
+    {
+        "route": "/some_file",
+        "path": "S:\Programming\Jet_Brains\Javascript\SBackend\main.js"
+    },
+    {
+        "route": "/folder/:file/:file/*",
+        "dir": "S:\Programming\Jet_Brains\Javascript\SBackend"
+    }
+]
+```
+## Setting config
+```javascript
+import SBackend from "./sBackend/index.mjs";
+
+let app = new SBackend();
+
+app.setConfig({
+    port: 8888,
+    name: "test",
+    version: "0.0.0",
+    logPath: "./latest.log"
+});
 
 app.start();
 ```
