@@ -45,7 +45,7 @@ export function logFormat(tag, data) {
 export default class Logger {
     constructor(path) {
         if (path === null) {
-            this.file = {write(data){}, read(){}}
+            this.file = {write(data){}, read(){}, append(){}};
         }
         else {
             this.file = new File(path)
@@ -73,10 +73,10 @@ export default class Logger {
         if (typeof dataConsole === "object" && dataConsole !== null) {
             return this.Log(tag, data, json.stringifyColours(dataConsole), func);
         }
-        let text = `\n${getDate()}: ${tag}: `;
+        let text = `${getDate()}: ${tag}: `;
         // this.file.append(text + data);
         // console.log(func(text + dataConsole));
-        return this.log(text + data, func(text + dataConsole));
+        return this.log((this.file.read() === "" ? "" : "\n") + text + data, func('\n' + text + dataConsole));
     }
 
     message(data, dataConsole = data) {
@@ -107,8 +107,8 @@ export default class Logger {
     }
 
     initMessage(name, version, port) {
-        return this.log(`--++== ${name} v${version}; port: ${port} ==++--`,
-            chalk.greenBright(`--++== ${chalk.green(name)} ${chalk.cyan('v' + version)}; port: ${chalk.cyan(port)} ==++--`));
+        return this.log(`${this.file.read() === "" ? "" : "\n"}--++== ${name} v${version}; port: ${port} ==++--`,
+            chalk.greenBright(`\n--++== ${chalk.green(name)} ${chalk.cyan('v' + version)}; port: ${chalk.cyan(port)} ==++--`));
     }
 
     messageObject(data, dataConsole = data) {
