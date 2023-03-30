@@ -196,7 +196,7 @@ app.rawPost("/post", (request, response, app) => {
 ```
 #### Server will log only init message.
 ### Raw GET
-#### No request body parsing, no logging, no error handling.
+#### No logging, no error handling.
 ```javascript
 app.rawGet("/post", (request, response, app) => {
     response.status(200);
