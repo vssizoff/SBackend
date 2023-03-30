@@ -229,17 +229,28 @@ export default {
             callback(data, app, response, request, errorFunc) {
                 app.logger.message("POST");
                 app.logger.message(data);
+                return {
+                    code: 200,
+                    response: "ok"
+                }
             }
         },
         "/formdata": {
             callback(data, app, response, request, errorFunc) {
                 app.logger.message("FormData");
                 app.logger.message(data);
-            }
+                return {
+                    code: 200,
+                    response: "ok"
+                }
+            },
+            wrapper: "post.formData"
         },
         "/post/raw": {
-            callback(response, request, app) {
+            callback(request, response, app) {
                 app.logger.message("raw POST");
+                response.status(200);
+                response.end("ok");
             },
             wrapper: "raw"
         }
@@ -249,11 +260,17 @@ export default {
             callback(data, app, response, request, errorFunc) {
                 app.logger.message("GET");
                 app.logger.message(data);
+                return {
+                    code: 200,
+                    response: "ok"
+                }
             }
         },
         "/get/raw": {
-            callback(response, request, app) {
+            callback(request, response, app) {
                 app.logger.message("raw GET");
+                response.status(200);
+                response.end("ok");
             },
             wrapper: "raw"
         }
@@ -261,7 +278,7 @@ export default {
 }
 ```
 #### Server will log (after handling requests):
-```log
+```
 --++== test v0.0.0; port: 8888 ==++--
 
 2023.3.30 17:45:0: info: POST
@@ -351,4 +368,135 @@ export default {
 2023.3.30 17:45:10: request: Handled request to /get?test=test&test0=0&test1=true. Code: 200. Response: "ok"
 
 2023.3.30 17:45:12: info: raw GET
+```
+# Sending files
+## One file
+```javascript
+import SBackend from "./sBackend/index.mjs";
+import path from "path";
+
+let app = new SBackend({
+    port: 8888,
+    name: "test",
+    version: "0.0.0",
+    logPath: "./latest.log"
+});
+
+app.addFile("/some_file", path.resolve("./main.js"));
+
+app.start();
+```
+#### Server will log (after handling request):
+```
+--++== test v0.0.0; port: 8888 ==++--
+
+2023.3.30 17:58:27: request: Handled request to /some_file
+```
+#### Response:
+```javascript
+import SBackend from "./sBackend/index.mjs";
+import path from "path";
+
+let app = new SBackend({
+    port: 8888,
+    name: "test",
+    version: "0.0.0",
+    logPath: "./latest.log"
+});
+
+app.addFolder("/folder", path.resolve("."));
+
+app.start();
+```
+## One folder
+```javascript
+import SBackend from "./sBackend/index.mjs";
+import path from "path";
+
+let app = new SBackend({
+    port: 8888,
+    name: "test",
+    version: "0.0.0",
+    logPath: "./latest.log"
+});
+
+app.addFolder("/folder", path.resolve("."));
+
+app.start();
+```
+#### Server will log (after handling request):
+```
+--++== test v0.0.0; port: 8888 ==++--
+
+2023.3.30 18:5:59: request: Handled request to /folder/main.js
+```
+#### Response:
+```javascript
+import SBackend from "./sBackend/index.mjs";
+import path from "path";
+
+let app = new SBackend({
+    port: 8888,
+    name: "test",
+    version: "0.0.0",
+    logPath: "./latest.log"
+});
+
+app.addFolder("/folder", path.resolve("."));
+
+app.start();
+```
+## Multiple
+```javascript
+import SBackend from "./sBackend/index.mjs";
+import path from "path";
+
+let app = new SBackend({
+    port: 8888,
+    name: "test",
+    version: "0.0.0",
+    logPath: "./latest.log"
+});
+
+app.addHandlers({
+    "/some_file": {
+        path: path.resolve("./main.js")
+    },
+    "/folder": {
+        dir: path.resolve(".")
+    }
+})
+
+app.start();
+```
+#### Server will log (after handling request):
+```
+--++== test v0.0.0; port: 8888 ==++--
+
+2023.3.30 18:11:3: request: Handled request to /some_file
+
+2023.3.30 18:11:23: request: Handled request to /folder/main.js
+```
+#### Both responses:
+```javascript
+import SBackend from "./sBackend/index.mjs";
+import path from "path";
+
+let app = new SBackend({
+    port: 8888,
+    name: "test",
+    version: "0.0.0",
+    logPath: "./latest.log"
+});
+
+app.addHandlers({
+    "/some_file": {
+        path: path.resolve("./main.js")
+    },
+    "/folder": {
+        dir: path.resolve(".")
+    }
+})
+
+app.start();
 ```
