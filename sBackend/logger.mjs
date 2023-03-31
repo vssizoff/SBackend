@@ -164,8 +164,8 @@ export default class Logger {
             toLogColours += `. Request: ${chalk.white(json.stringifyColours(request))}`;
         }
         if (response !== undefined) {
-            toLog += `. Response: ${responseRaw}`;
-            toLogColours += `. Response: ${chalk.white(json.stringifyColours(response))}`;
+            toLog += `. Response: ${response}`;
+            toLogColours += `. Response: ${chalk.white(json.stringifyColours(responseRaw))}`;
         }
         return this.Log("request", toLog, toLogColours, chalk.green);
     }
