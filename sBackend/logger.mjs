@@ -175,7 +175,12 @@ export default class Logger {
         let toLogColours = `Error during handling request to ${chalk.greenBright(url)}`;
         if (request !== undefined) {
             toLog += `. Request: ${request}`;
-            toLogColours += `. Request: ${json.stringifyColours(config.inputFormat === "object" ? JSON.parse(request) : request)}`
+            try {
+                toLogColours += `. Request: ${json.stringifyColours(config.inputFormat === "object" ? JSON.parse(request) : request)}`
+            }
+            catch (err) {
+                toLogColours += `. Request: ${json.stringifyColours(request)}`
+            }
         }
         toLog += `\n${stackTrace}`;
         toLogColours += `\n${stackTrace}`;
