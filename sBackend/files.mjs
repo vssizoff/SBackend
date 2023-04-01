@@ -26,7 +26,7 @@ export class File {
         this.data = undefined;
     }
 
-    write(data) {
+    write(data = this.data) {
         this.data = data;
         write(this.path, data);
     }
@@ -36,7 +36,7 @@ export class File {
         return this.data;
     }
 
-    writeObject(data) {
+    writeObject(data = this.data) {
         this.data = data;
         writeObject(this.path, data);
     }
