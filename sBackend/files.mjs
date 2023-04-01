@@ -22,26 +22,35 @@ export function append(path, data) {
 
 export class File {
     constructor(path) {
-        this.path = path
+        this.path = path;
+        this.data = undefined;
     }
 
     write(data) {
-        write(this.path, data)
+        this.data = data;
+        write(this.path, data);
     }
 
     read() {
-        return read(this.path)
+        this.data = read(this.path);
+        return this.data;
     }
 
     writeObject(data) {
-        writeObject(this.path, data)
+        this.data = data;
+        writeObject(this.path, data);
     }
 
     readObject() {
-        return readObject(this.path)
+        this.data = readObject(this.path);
+        return this.data;
     }
 
     append(data) {
-        append(this.path, data)
+        if (typeof this.data === "object") {
+            this.data = JSON.stringify(this.data);
+        }
+        this.data += data;
+        append(this.path, data);
     }
 }
