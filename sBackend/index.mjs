@@ -3,13 +3,15 @@ import {configValidator} from "./functions.mjs";
 import Logger from "./logger.mjs"
 import Handler from "./handler.mjs";
 import fileUpload from "express-fileupload";
+import readline from "node:readline";
+import { stdin as input, stdout as output } from 'process';
 
 let defaultConfig = {
     port: 8080,
     name: "app",
     version: "0.0.0",
     logPath: null,
-    fileUploader: false,
+    readlinePrompt: ">> ",
     handlerConfig: {
         wrapper: "auto",
         inputFormat: "object",
@@ -22,6 +24,16 @@ let defaultConfig = {
         logResponse: true,
         ifErr: ""
     }
+}
+
+let rl = readline.createInterface({input, output});
+let log = console.log;
+console.log = function() {
+    rl.pause();
+    rl.output.write('\x1b[2K\r');
+    log.apply(console, Array.prototype.slice.call(arguments));
+    rl.resume();
+    rl._refreshLine();
 }
 
 function wrapper(handler) {
@@ -64,17 +76,47 @@ export function handlersFormat(handlers, app) {
 }
 
 export default class SBackend {
+    express;
+    expressUse = [];
+    handlers = [];
+    keyboardCommands = [];
+    routes = [];
+    rlStopped = false;
+    readline;
+    server = undefined;
+    startCallback = () => undefined;
+    onInput = answer => undefined;
+
     constructor(config = defaultConfig) {
         this.express = express();
-        this.handlers = []
-        this.routes = []
-        this.express.use(fileUpload({}));
+        this.use(fileUpload({}));
         this.setConfig(config);
+        this.readline = rl;
+        this.initRl();
     }
 
     setConfig(config = defaultConfig) {
         this.config = configValidator(defaultConfig, config);
         this.logger = new Logger(this.config.logPath);
+    }
+
+    initRl() {
+        this.readline.setPrompt(this.config.readlinePrompt);
+        this.readline.on("line", answer => {
+            let command = answer.split(' ')[0], flag = true;
+            this.keyboardCommands.forEach(value => {
+                if (value.command === command) {
+                    value.callback(answer);
+                    flag = false;
+                }
+            });
+            if (flag) {
+                this.onInput(answer);
+            }
+            if (!this.rlStopped) {
+                this.readline.prompt();
+            }
+        });
     }
 
     addHandler(route, type, callback, config = defaultConfig.handlerConfig, routePush = true) {
@@ -117,6 +159,14 @@ export default class SBackend {
         this.addHandler(route, "post", callback, {...config, wrapper: "post.formData"}, routePush)
     }
 
+    rawPost(route, callback, config = defaultConfig.handlerConfig) {
+        this.addHandler(route, "post", callback, {...config, wrapper: "raw"})
+    }
+
+    rawGet(route, callback, config = defaultConfig.handlerConfig) {
+        this.addHandler(route, "get", callback, {...config, wrapper: "raw"})
+    }
+
     addFolder(route, path, logging = true){
         if (route !== null && typeof route === "string" && route.length > 0 && path !== null && typeof path === "string" && path.length > 0){
             if (route.substring(0, 1) !== '/'){
@@ -144,15 +194,32 @@ export default class SBackend {
         this.routes.push({route, path});
     }
 
-    rawPost(route, callback, config = defaultConfig.handlerConfig) {
-        this.addHandler(route, "post", callback, {...config, wrapper: "raw"})
+    use() {
+        this.expressUse.push(arguments);
     }
 
-    rawGet(route, callback, config = defaultConfig.handlerConfig) {
-        this.addHandler(route, "get", callback, {...config, wrapper: "raw"})
+    addKeyboardCommand(command, callback) {
+        this.keyboardCommands.push({command, callback});
+    }
+
+    addKeyboardCommands(commands) {
+        if (typeof commands !== "object") return;
+        if (Array.isArray(commands)) {
+            commands.forEach(command => {
+                this.addKeyboardCommand(command.command, command.callback);
+            });
+            return;
+        }
+        Object.keys(commands).forEach(key => {
+            this.addKeyboardCommand(key, commands[key]);
+        });
     }
 
     start(callback = app => null) {
+        this.startCallback = callback;
+        this.expressUse.forEach(value => {
+            this.express.use(...value);
+        });
         this.handlers.forEach(handler => {
             switch (handler.type) {
                 case "post":
@@ -181,7 +248,7 @@ export default class SBackend {
                     break;
             }
         });
-        this.express.listen(this.config.port, () => {
+        this.server = this.express.listen(this.config.port, () => {
             // this.logger.message(`Server working on port ${this.config.port}`)
             let errorFunc = err => {
                 // let toLog = `Error in start`;
@@ -194,10 +261,40 @@ export default class SBackend {
             try {
                 this.logger.initMessage(this.config.name, this.config.version, this.config.port)
                 callback(this, errorFunc);
+                this.readline.prompt();
             }
             catch (err) {
                 errorFunc(err)
             }
         });
+    }
+
+    pause(stopRl = false) {
+        if (stopRl) {
+            this.readline.pause();
+            this.rlStopped = true;
+        }
+        this.server.close();
+    }
+
+    resume(rerunCallback = false) {
+        this.express = express();
+        this.express.use(fileUpload({}));
+        if (this.rlStopped) {
+            this.readline.resume();
+            this.rlStopped = false;
+        }
+        if (rerunCallback) this.start(this.startCallback);
+        else this.start();
+    }
+
+    stop(code = 0) {
+        this.pause(true);
+        process.exit(code);
+    }
+
+    restart(rerunCallback = true) {
+        this.pause(true);
+        this.resume(rerunCallback);
     }
 }

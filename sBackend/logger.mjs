@@ -1,7 +1,6 @@
 import {File} from "./files.mjs";
 import chalk from "chalk";
 import * as json from "./json.mjs";
-// import * as flatted from "../node_modules/flatted/esm/index.js";
 
 export function fromType(data, object, array = null) {
     switch (typeof data) {

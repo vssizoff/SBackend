@@ -10,6 +10,16 @@ let app = new SBackend({
     logPath: "./latest.log"
 });
 
+app.onInput = answer => app.logger.message(answer);
+app.addKeyboardCommand("stop", () => app.stop());
+app.addKeyboardCommand("pause", () => app.pause());
+app.addKeyboardCommand("resume", () => app.resume());
+app.addKeyboardCommand("restart", () => app.restart());
+app.addKeyboardCommand("timeout", () => {
+    app.pause(true);
+    setTimeout(() => app.resume(), 10000);
+});
+
 app.post("/test", (data, app, response, request) => {
     // app.logger.success("test request");
     // app.logger.message(data);
@@ -110,7 +120,6 @@ app.post("/test", (data, app, response, request) => {
 }, {
     parseQuery: true
 });
-
 app.addHandlers(test);
 app.addFile("/postman", path.resolve("postman.html"));
 // app.addFolder("/", path.resolve("./sBackend"));

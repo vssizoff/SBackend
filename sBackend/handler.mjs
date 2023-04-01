@@ -34,10 +34,6 @@ export default class Handler {
 
     setWrapper(wrapper = this.config.wrapper) {
         this.config.wrapper = wrapper
-        // if (wrapper === "auto") {
-        //
-        //     return;
-        // }
         switch (wrapper) {
             case "auto":
                 this.setWrapper(this.type);
@@ -60,6 +56,8 @@ export default class Handler {
     }
 
     run(request, response) {
-        this.callback(request, response, this.app)
+        this.callback(request, response, this.app);
+        // this.app.readline.close();
+        // this.app.readline.prompt();
     }
 }
