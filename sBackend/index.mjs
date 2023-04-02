@@ -26,15 +26,7 @@ let defaultConfig = {
     }
 }
 
-let rl = readline.createInterface({input, output});
 let log = console.log;
-console.log = function() {
-    rl.pause();
-    rl.output.write('\x1b[2K\r');
-    log.apply(console, Array.prototype.slice.call(arguments));
-    rl.resume();
-    rl._refreshLine();
-}
 
 function wrapper(handler) {
     return (request, response) => {
@@ -76,13 +68,13 @@ export function handlersFormat(handlers, app) {
 }
 
 export default class SBackend {
-    express;
+    express = express();
     expressUse = [];
     handlers = [];
     keyboardCommands = [];
     routes = [];
     rlStopped = false;
-    readline;
+    readline = readline.createInterface({input, output});
     server = undefined;
     onStart = app => undefined;
     onPause = app => undefined;
@@ -92,10 +84,8 @@ export default class SBackend {
     defaultKeyboardHandler = answer => undefined;
 
     constructor(config = defaultConfig) {
-        this.express = express();
         this.use(fileUpload({}));
         this.setConfig(config);
-        this.readline = rl;
         this.initRl();
     }
 
@@ -125,6 +115,18 @@ export default class SBackend {
     }
 
     initRl() {
+        let app = this;
+        console.log = function() {
+            if (!app.rlStopped) {
+                app.readline.pause();
+                app.readline.output.write('\x1b[2K\r');
+            }
+            log.apply(console, Array.prototype.slice.call(arguments));
+            if (!app.rlStopped) {
+                app.readline.resume();
+                app.readline._refreshLine();
+            }
+        }
         this.readline.setPrompt(this.config.readlinePrompt);
         this.readline.on("line", answer => {
             let command = answer.split(' ')[0], flag = true;
@@ -288,6 +290,10 @@ export default class SBackend {
                 this.logger.initMessage(this.config.name, this.config.version, this.config.port)
                 callback(this, errorFunc);
                 this.readline.prompt();
+                // process.on('SIGTERM', () => {
+                //     this.stop();
+                // });
+                // process.on('SIGINT', () => this.stop());
             }
             catch (err) {
                 errorFunc(err)
@@ -321,8 +327,10 @@ export default class SBackend {
 
     stop(code = 0, callback = this.onStop, replaceEvent = true) {
         if (replaceEvent) this.onStop = callback;
-        this.pause(true, callback, false);
-        process.exit(code);
+        this.pause(true, () => {
+            callback(this);
+            process.exit(code);
+        }, false);
     }
 
     restart(rerunCallback = true, callback = this.onRestart, replaceEvent = true) {

@@ -10,6 +10,14 @@ let app = new SBackend({
     logPath: "./latest.log"
 });
 
+app.onStop = () => {app.logger.message("Server stopped")};
+app.onPause = () => {app.logger.message("Server paused")};
+app.onResume = () => {app.logger.message("Server resumed")};
+app.onRestart = () => {app.logger.message("Server restarted")};
+
+process.on('SIGTERM', () => app.stop());
+process.on('SIGINT', () => app.stop());
+
 app.defaultKeyboardHandler = answer => app.logger.message(answer);
 app.addKeyboardCommand("stop", () => app.stop());
 app.addKeyboardCommand("pause", () => app.pause());
