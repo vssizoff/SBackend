@@ -10,7 +10,7 @@ let app = new SBackend({
     logPath: "./latest.log"
 });
 
-app.onInput = answer => app.logger.message(answer);
+app.defaultKeyboardHandler = answer => app.logger.message(answer);
 app.addKeyboardCommand("stop", () => app.stop());
 app.addKeyboardCommand("pause", () => app.pause());
 app.addKeyboardCommand("resume", () => app.resume());

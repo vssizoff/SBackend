@@ -84,8 +84,12 @@ export default class SBackend {
     rlStopped = false;
     readline;
     server = undefined;
-    startCallback = () => undefined;
-    onInput = answer => undefined;
+    onStart = app => undefined;
+    onPause = app => undefined;
+    onResume = app => undefined;
+    onStop = app => undefined;
+    onRestart = app => undefined;
+    defaultKeyboardHandler = answer => undefined;
 
     constructor(config = defaultConfig) {
         this.express = express();
@@ -93,6 +97,26 @@ export default class SBackend {
         this.setConfig(config);
         this.readline = rl;
         this.initRl();
+    }
+
+    on(event, callback) {
+        switch (event.toLowerCase()) {
+            case "start":
+                this.onStart = callback;
+                break;
+            case "pause":
+                this.onPause = callback;
+                break;
+            case "resume":
+                this.onResume = callback;
+                break;
+            case "stop":
+                this.onStop = callback;
+                break;
+            case "restart":
+                this.onRestart = callback;
+                break;
+        }
     }
 
     setConfig(config = defaultConfig) {
@@ -111,7 +135,7 @@ export default class SBackend {
                 }
             });
             if (flag) {
-                this.onInput(answer);
+                this.defaultKeyboardHandler(answer);
             }
             if (!this.rlStopped) {
                 this.readline.prompt();
@@ -215,8 +239,10 @@ export default class SBackend {
         });
     }
 
-    start(callback = app => null) {
-        this.startCallback = callback;
+    start(callback = this.onStart, replaceEvent = true) {
+        if (replaceEvent) {
+            this.onStart = callback;
+        }
         this.expressUse.forEach(value => {
             this.express.use(...value);
         });
@@ -269,32 +295,39 @@ export default class SBackend {
         });
     }
 
-    pause(stopRl = false) {
+    pause(stopRl = false, callback = this.onPause, replaceEvent = true) {
+        if (replaceEvent) this.onPause = callback;
         if (stopRl) {
             this.readline.pause();
             this.rlStopped = true;
         }
-        this.server.close();
+        this.server.close(() => callback(this));
     }
 
-    resume(rerunCallback = false) {
+    resume(rerunCallback = false, callback = this.onResume, replaceEvent = true) {
+        if (replaceEvent) this.onResume = callback;
         this.express = express();
         this.express.use(fileUpload({}));
         if (this.rlStopped) {
             this.readline.resume();
             this.rlStopped = false;
         }
-        if (rerunCallback) this.start(this.startCallback);
-        else this.start();
+        if (rerunCallback) this.start(() => {
+            callback(this);
+            this.onStart(this);
+        }, false);
+        else this.start(callback, false);
     }
 
-    stop(code = 0) {
-        this.pause(true);
+    stop(code = 0, callback = this.onStop, replaceEvent = true) {
+        if (replaceEvent) this.onStop = callback;
+        this.pause(true, callback, false);
         process.exit(code);
     }
 
-    restart(rerunCallback = true) {
-        this.pause(true);
-        this.resume(rerunCallback);
+    restart(rerunCallback = true, callback = this.onRestart, replaceEvent = true) {
+        if (replaceEvent) this.onRestart = callback;
+        this.pause(true, () => undefined, false);
+        this.resume(rerunCallback, callback, false);
     }
 }
