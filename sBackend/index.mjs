@@ -277,23 +277,15 @@ export default class SBackend {
             }
         });
         this.server = this.express.listen(this.config.port, () => {
-            // this.logger.message(`Server working on port ${this.config.port}`)
             let errorFunc = err => {
-                // let toLog = `Error in start`;
-                // let toLogColours = `Error in start`;
-                // toLog += `\n${err.stack}`;
-                // toLogColours += `\n${err.stack}`;
-                // return this.logger.Log("request error", toLog, toLogColours, chalk.redBright);
                 return this.logger.error("Error in start" + `\n${err.stack}`);
             };
             try {
                 this.logger.initMessage(this.config.name, this.config.version, this.config.port)
                 callback(this, errorFunc);
                 this.readline.prompt();
-                // process.on('SIGTERM', () => {
-                //     this.stop();
-                // });
-                // process.on('SIGINT', () => this.stop());
+                process.on('SIGTERM', () => this.stop());
+                process.on('SIGINT', () => this.stop());
             }
             catch (err) {
                 errorFunc(err)
@@ -307,6 +299,7 @@ export default class SBackend {
             this.readline.pause();
             this.rlStopped = true;
         }
+        if (this.server.closeAllConnections) this.server.closeAllConnections();
         this.server.close(() => callback(this));
     }
 
