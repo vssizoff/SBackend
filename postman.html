@@ -17,25 +17,107 @@
 <script src="http://localhost:8888/srequest"></script>
 <script>
     function request(url, successFunc = response => console.log(response), errorFunc = response => console.log(response), body = null) {
-        let promise = fetch(url, body !== null ? {
-            method: "POST",
-            body
-        } : {
-            method: "GET"
-        });
-        promise.then(response => response.json().then(data => successFunc(data)));
-        promise.catch(response => errorFunc(response));
+        // let promise = fetch(url, body !== null ? {
+        //     method: "POST",
+        //     body
+        // } : {
+        //     method: "GET"
+        // });
+        // promise.then(response => response.json().then(data => successFunc(data)));
+        // promise.catch(response => errorFunc(response));
+        if (body == null) {
+            // get(url, {
+            //     onSuccess(data, status, headers, response) {
+            //         console.log(data);
+            //         console.log(status);
+            //         console.log(headers);
+            //         console.log(response);
+            //         successFunc(data);
+            //     },
+            //     onError(data, status, headers, response) {
+            //         console.log(data);
+            //         console.log(status);
+            //         console.log(headers);
+            //         console.log(response);
+            //         errorFunc(data);
+            //     }
+            // });
+            let f = async () => {
+                let {data, status, headers, response} = await getSync(url);
+                console.log(data);
+                console.log(status);
+                console.log(headers);
+                console.log(response);
+                successFunc(data);
+            };
+            f();
+        }
+        else {
+            // post(url, body, {
+            //     onSuccess(data, status, headers, response) {
+            //         console.log(data);
+            //         console.log(status);
+            //         console.log(headers);
+            //         console.log(response);
+            //         successFunc(data);
+            //
+            //     },
+            //     onError(data, status, headers, response) {
+            //         console.log(data);
+            //         console.log(status);
+            //         console.log(headers);
+            //         console.log(response);
+            //         errorFunc(data);
+            //     }
+            // });
+            let f = async () => {
+                let {data, status, headers, response} = await postSync(url, body);
+                console.log(data);
+                console.log(status);
+                console.log(headers);
+                console.log(response);
+                successFunc(data);
+            };
+            f();
+        }
     }
 
     function formdataRequest(url, data, successFunc = response => console.log(response), errorFunc = response => console.log(response)) {
-        let formdata = new FormData();
-        // for (let key of data) {
-        //     formdata.append(key, data[key]);
-        // }
-        Object.keys(data).forEach(value => {
-            formdata.append(value, data[value]);
-        });
-        request(url, successFunc, errorFunc, formdata);
+        // let formdata = new FormData();
+        // // for (let key of data) {
+        // //     formdata.append(key, data[key]);
+        // // }
+        // Object.keys(data).forEach(value => {
+        //     formdata.append(value, data[value]);
+        // });
+        // request(url, successFunc, errorFunc, formdata);
+        // console.log(data);
+        // formData(url, data, {
+        //     onSuccess(data, status, headers, response) {
+        //         console.log(data);
+        //         console.log(status);
+        //         console.log(headers);
+        //         console.log(response);
+        //         successFunc(data);
+        //
+        //     },
+        //     onError(data, status, headers, response) {
+        //         console.log(data);
+        //         console.log(status);
+        //         console.log(headers);
+        //         console.log(response);
+        //         errorFunc(data);
+        //     }
+        // });
+        let f = async () => {
+            let {data: d, status, headers, response} = await formDataSync(url, data);
+            console.log(d);
+            console.log(status);
+            console.log(headers);
+            console.log(response);
+            successFunc(d);
+        };
+        f();
     }
 
     function fromCharCodes(charCodes) {

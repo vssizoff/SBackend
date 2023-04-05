@@ -7,7 +7,7 @@ export default {
             app.logger.message(data.query);
             return {
                 code: 200,
-                response: "ok"
+                response: data
             }
         },
         type: "get"
@@ -15,22 +15,23 @@ export default {
     "/test_formData": {
         callback(data, app, response, request) {
             // app.logger.message(data.request);
-            app.logger.message(Object.keys(data.files.file));
+            app.logger.message(Object.keys(data.files));
             // app.logger.message(data.url);
             // app.logger.message(data.query);
             return {
                 code: 200,
-                response: "ok"
+                response: data
             };
         },
-        wrapper: "post.formData"
+        wrapper: "post.formData",
+        logResponse: false
     },
     "/test_post": {
         callback(data, app, response, request) {
             app.logger.message(data);
             return {
                 code: 200,
-                response: null,
+                response: data,
                 headers: {
                     test: undefined
                 }

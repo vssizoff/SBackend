@@ -53,16 +53,16 @@ function listener(request, outputType, onSuccess, onError) {
     request.then(response => {
         switch (outputType) {
             case "object":
-                response.json().then(data => {onSuccess(data, response.code, response.headers, response)});
+                response.json().then(data => {onSuccess(data, response.status, response.headers, response)});
                 break;
             case "text":
-                response.text().then(data => {onSuccess(data, response.code, response.headers, response)});
+                response.text().then(data => {onSuccess(data, response.status, response.headers, response)});
                 break;
             case "blob":
-                response.blob().then(data => {onSuccess(data, response.code, response.headers, response)});
+                response.blob().then(data => {onSuccess(data, response.status, response.headers, response)});
                 break;
             default:
-                onSuccess(null, response.code, response.headers, response);
+                onSuccess(null, response.status, response.headers, response);
         }
     });
     request.catch(error => {
@@ -113,6 +113,7 @@ function post(url, body, options = defaultCfg) {
 }
 
 function formData(url, body, options = defaultCfg) {
+    // console.log(body);
     let formdata = new FormData();
     Object.keys(body).forEach(key => {
         formdata.append(key, body[key])
@@ -124,6 +125,7 @@ function formData(url, body, options = defaultCfg) {
         url = url + Query(query);
     }
 
+    // console.log(formdata);
     let request = fetch(url, {
         method: "POST",
         body: formdata,
@@ -131,4 +133,46 @@ function formData(url, body, options = defaultCfg) {
     });
 
     listener(request, outputType, onSuccess, onError);
+}
+
+async function getSync(url, options = defaultCfg) {
+    return new Promise((resolve, reject) => {
+        get(url, {
+            ...options,
+            onSuccess(data, status, headers, response) {
+                resolve({data, status, headers, response});
+            },
+            onError(data, status, headers, response) {
+                reject({data, status, headers, response});
+            }
+        })
+    });
+}
+
+async function postSync(url, body, options = defaultCfg) {
+    return new Promise((resolve, reject) => {
+        post(url, body, {
+            ...options,
+            onSuccess(data, status, headers, response) {
+                resolve({data, status, headers, response});
+            },
+            onError(data, status, headers, response) {
+                reject({data, status, headers, response});
+            }
+        })
+    });
+}
+
+async function formDataSync(url, body, options = defaultCfg) {
+    return new Promise((resolve, reject) => {
+        formData(url, body, {
+            ...options,
+            onSuccess(data, status, headers, response) {
+                resolve({data, status, headers, response});
+            },
+            onError(data, status, headers, response) {
+                reject({data, status, headers, response});
+            }
+        })
+    });
 }
