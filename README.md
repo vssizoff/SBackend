@@ -557,7 +557,11 @@ app.start();
 # Keyboard
 ## Adding command
 ```javascript
+app.addKeyboardCommand("test", data => { 
+     app.log(data);
+});
 ```
+
 # Files (utf-8)
 ## Read file
 ```javascript
