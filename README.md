@@ -554,6 +554,10 @@ app.start();
   "/functions": "./sBackend/files.mjs"
 }
 ```
+# Keyboard
+## Adding command
+```javascript
+```
 # Files (utf-8)
 ## Read file
 ```javascript
