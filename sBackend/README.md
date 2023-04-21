@@ -2,16 +2,13 @@
 * Init node project
 * Type this in console
 ```
-npm i express
-npm i express-fileupload
-npm i chalk
+npm i sbackend
 ```
-* Extract [this archive](https://disk.yandex.ru/d/S16Krj_BUvpbOg) to root of your project
 # Starting
 ## Creating an app
 #### esm
 ```javascript
-import SBackend from "./sBackend/index.mjs";
+import SBackend from "sbackend";
 
 let app = new SBackend();
 
@@ -19,7 +16,7 @@ app.start();
 ```
 #### cjs
 ```javascript
-const SBackend = require("./sBackend/index.mjs")
+const SBackend = require("sbackend")
 
 let app = new SBackend();
 
@@ -214,7 +211,7 @@ app.rawGet("/post", (request, response, app) => {
 #### Server will log only init message.
 ### Other type
 ```javascript
-import SBackend from "./sBackend/index.mjs";
+import SBackend from "sbackend";
 
 let app = new SBackend({
     port: 8888,
@@ -233,7 +230,7 @@ app.start();
 ## Multiple handlers
 ### main.js
 ```javascript
-import SBackend from "./sBackend/index.mjs";
+import SBackend from "sbackend";
 import handlers from "./handlers.js";
 
 let app = new SBackend({
@@ -398,7 +395,7 @@ export default {
 # Sending files
 ## One file
 ```javascript
-import SBackend from "./sBackend/index.mjs";
+import SBackend from "sbackend";
 import path from "path";
 
 let app = new SBackend({
@@ -420,7 +417,7 @@ app.start();
 ```
 #### Response:
 ```javascript
-import SBackend from "./sBackend/index.mjs";
+import SBackend from "sbackend";
 import path from "path";
 
 let app = new SBackend({
@@ -436,7 +433,7 @@ app.start();
 ```
 ## One folder
 ```javascript
-import SBackend from "./sBackend/index.mjs";
+import SBackend from "sbackend";
 import path from "path";
 
 let app = new SBackend({
@@ -458,7 +455,7 @@ app.start();
 ```
 #### Response:
 ```javascript
-import SBackend from "./sBackend/index.mjs";
+import SBackend from "sbackend";
 import path from "path";
 
 let app = new SBackend({
@@ -474,7 +471,7 @@ app.start();
 ```
 ## Multiple
 ```javascript
-import SBackend from "./sBackend/index.mjs";
+import SBackend from "sbackend";
 import path from "path";
 
 let app = new SBackend({
@@ -505,7 +502,7 @@ app.start();
 ```
 #### Both responses:
 ```javascript
-import SBackend from "./sBackend/index.mjs";
+import SBackend from "sbackend";
 import path from "path";
 
 let app = new SBackend({
@@ -529,7 +526,7 @@ app.start();
 ## From json
 ### main.js
 ```javascript
-import SBackend from "./sBackend/index.mjs";
+import SBackend from "sbackend";
 import path from "path";
 import files from "./files.json" assert { type: "json" };
 
@@ -570,14 +567,14 @@ app.defaultKeyboardHandler = data => {
 # Files (utf-8)
 ## Read file
 ```javascript
-import * as files from "./sBackend/files.mjs";
+import * as files from "sbackend/files.mjs";
 
 console.log(files.read("test.txt"));
 console.log(files.readObject("test.json"));
 ```
 ## Write file
 ```javascript
-import * as files from "./sBackend/files.mjs";
+import * as files from "sbackend/files.mjs";
 
 files.write("test.txt", "SBackend test file");
 files.writeObject("test.json", {
@@ -588,7 +585,7 @@ files.writeObject("test.json", {
 ```
 ## Append to file
 ```javascript
-import * as files from "./sBackend/files.mjs";
+import * as files from "sbackend/files.mjs";
 
 files.write("test.txt", "SBackend");
 files.append("test.txt", " test file");
@@ -596,7 +593,7 @@ console.log(files.read("test.txt")) // SBackend test file
 ```
 ## File class
 ```javascript
-import * as files from "./sBackend/files.mjs";
+import * as files from "sbackend/files.mjs";
 
 let file = new files.File("test.txt");
 
@@ -617,7 +614,7 @@ console.log(file.read()) // {"test": "test", "test0": 0, "test1": true}
 # Other
 ## Logging routes
 ```javascript
-import SBackend from "./sBackend/index.mjs";
+import SBackend from "sbackend";
 import handlers from "./handlers.js";
 import path from "path";
 
@@ -685,7 +682,7 @@ app.start(() => {
 ```
 ## Setting config
 ```javascript
-import SBackend from "./sBackend/index.mjs";
+import SBackend from "sbackend";
 
 let app = new SBackend();
 
