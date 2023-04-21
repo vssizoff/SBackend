@@ -199,12 +199,15 @@ export default class SBackend {
                 route = '/' + route;
             }
             // this.express.use(route, express.static(path));
-            this.get(route !== '/' ? route += "/:file" : "/:file", (data, app, response, request) => {
-                response.sendFile(`${path}/${request.params.file}`);
-            }, {logging}, false)
-            this.get(route !== '/' ? route += "/:file/*" : "/:file/*", (data, app, response, request) => {
-                let file = data.url.substring(route.length);
-                response.sendFile(`${path}/${file}`);
+            // this.get(route !== '/' ? route += "/:file" : "/:file", (data, app, response, request) => {
+            //     response.sendFile(`${path}/${request.params.file}`);
+            // }, {logging}, false)
+            // this.get(route !== '/' ? route += "/:file/*" : "/:file/*", (data, app, response, request) => {
+            //     let file = data.url.substring(route.length);
+            //     response.sendFile(`${path}/${file}`);
+            // }, {logging}, false)
+            this.get(route !== '/' ? route += "/*" : "/*", (data, app, response, request) => {
+                response.sendFile(`${path}/${data.afterRoute}`);
             }, {logging}, false)
             this.routes.push({route, dir: path});
         }

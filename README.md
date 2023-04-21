@@ -557,11 +557,16 @@ app.start();
 # Keyboard
 ## Adding command
 ```javascript
-app.addKeyboardCommand("test", data => { 
-     app.log(data);
+app.addKeyboardCommand("test", data => {
+    app.logger.message(data);
 });
 ```
-
+## Default handler
+```javascript
+app.defaultKeyboardHandler = data => {
+    app.logger.message(data);
+};
+```
 # Files (utf-8)
 ## Read file
 ```javascript
@@ -692,4 +697,24 @@ app.setConfig({
 });
 
 app.start();
+```
+## Pause server
+```javascript
+app.pause();
+```
+## Resume server
+```javascript
+app.resume();
+```
+## Restart server
+```javascript
+app.restart();
+```
+## Stop server
+```javascript
+app.stop();
+```
+### Stop from keyboard
+```javascript
+app.addKeyboardCommand("stop", () => app.stop());
 ```
