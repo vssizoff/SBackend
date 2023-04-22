@@ -10,10 +10,15 @@ let app = new SBackend({
     logPath: "./latest.log"
 });
 
-app.onStop = () => {app.logger.message("Server stopped")};
-app.onPause = () => {app.logger.message("Server paused")};
-app.onResume = () => {app.logger.message("Server resumed")};
-app.onRestart = () => {app.logger.message("Server restarted")};
+// app.onStop = ;
+// app.onPause = ;
+// app.onResume = ;
+// app.onRestart = ;
+
+app.on("stop", () => {app.logger.message("Server stopped")});
+app.on("pause", () => {app.logger.message("Server paused")});
+app.on("resume", () => {app.logger.message("Server resumed")});
+app.on("restart", () => {app.logger.message("Server restarted")});
 
 // process.on('SIGTERM', () => app.stop());
 // process.on('SIGINT', () => app.stop());
@@ -138,4 +143,5 @@ Object.keys(files).forEach(route => {
 
 app.start(() => {
     app.logger.message(app.routes);
+
 });
