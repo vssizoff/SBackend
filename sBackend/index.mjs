@@ -224,6 +224,12 @@ export default class SBackend {
         this.routes.push({route, path});
     }
 
+    addFilesJson(files, pathResolve, logging = true) {
+        Object.keys(files).forEach(route => {
+            this.addFile(route, pathResolve(files[route]), logging);
+        });
+    }
+
     use() {
         this.expressUse.push(arguments);
     }

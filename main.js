@@ -136,10 +136,7 @@ app.post("/test", (data, app, response, request) => {
 app.addHandlers(test);
 app.addFile("/postman", path.resolve("postman.html"));
 // app.addFolder("/", path.resolve("./sBackend"));
-
-Object.keys(files).forEach(route => {
-    app.addFile(route, path.resolve(files[route]));
-});
+app.addFilesJson(files, p => path.resolve(p));
 
 app.start(() => {
     app.logger.message(app.routes);

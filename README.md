@@ -537,9 +537,7 @@ let app = new SBackend({
     logPath: "./latest.log"
 });
 
-Object.keys(files).forEach(route => {
-    app.addFile(route, path.resolve(files[route]));
-});
+app.addFilesJson(files, p => path.resolve(p));
 
 app.start();
 ```
@@ -563,6 +561,34 @@ app.addKeyboardCommand("test", data => {
 app.defaultKeyboardHandler = data => {
     app.logger.message(data);
 };
+```
+# Stop / pause / resume / restart server
+## Pause server
+```javascript
+app.pause();
+```
+## Resume server
+```javascript
+app.resume();
+```
+## Restart server
+```javascript
+app.restart();
+```
+## Stop server
+```javascript
+app.stop();
+```
+### Stop from keyboard
+```javascript
+app.addKeyboardCommand("stop", () => app.stop());
+```
+# Events
+```javascript
+app.on("stop", () => {app.logger.message("Server stopped")});
+app.on("pause", () => {app.logger.message("Server paused")});
+app.on("resume", () => {app.logger.message("Server resumed")});
+app.on("restart", () => {app.logger.message("Server restarted")});
 ```
 # Files (utf-8)
 ## Read file
@@ -694,24 +720,4 @@ app.setConfig({
 });
 
 app.start();
-```
-## Pause server
-```javascript
-app.pause();
-```
-## Resume server
-```javascript
-app.resume();
-```
-## Restart server
-```javascript
-app.restart();
-```
-## Stop server
-```javascript
-app.stop();
-```
-### Stop from keyboard
-```javascript
-app.addKeyboardCommand("stop", () => app.stop());
 ```
