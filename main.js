@@ -143,5 +143,4 @@ Object.keys(files).forEach(route => {
 
 app.start(() => {
     app.logger.message(app.routes);
-
 });

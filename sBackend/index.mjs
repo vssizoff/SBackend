@@ -340,8 +340,4 @@ export default class SBackend {
             if (runEvents) this.onRestart.forEach(fn => {fn(this)});
         }, false);
     }
-
-    consoleQuestion(text, callback) {
-
-    }
 }
