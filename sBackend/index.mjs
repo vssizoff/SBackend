@@ -19,11 +19,13 @@ let defaultConfig = {
         parseQuery: false,
         stringQuery: false,
         stringRouteParams: false,
+        stringHeaders: false,
         logging: true,
         logRequest: true,
         logResponse: true,
         ifErr: ""
-    }
+    },
+    questionString: "> "
 }
 
 let log = console.log;
@@ -133,17 +135,21 @@ export default class SBackend {
             let command = answer.split(' ')[0], flag = true;
             this.keyboardCommands.forEach(value => {
                 if (value.command === command) {
-                    value.callback(answer);
+                    value.callback(answer.trim());
                     flag = false;
                 }
             });
             if (flag) {
-                this.defaultKeyboardHandler(answer);
+                this.defaultKeyboardHandler(answer.trim());
             }
             if (!this.rlStopped) {
                 this.readline.prompt();
             }
         });
+    }
+
+    question(text, callback) {
+        this.readline.question(text + this.config.questionString, callback);
     }
 
     addHandler(route, type, callback, config = defaultConfig.handlerConfig, routePush = true) {

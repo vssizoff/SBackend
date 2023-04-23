@@ -721,3 +721,10 @@ app.setConfig({
 
 app.start();
 ```
+## Readline questions
+```javascript
+app.question("test", text => {
+    app.logger.success("ok");
+    app.logger.message(text);
+});
+```

@@ -5,6 +5,9 @@ export default {
         callback(data, app, response, request) {
             app.logger.message(data.url);
             app.logger.message(data.query);
+            app.question("test", text => {
+                app.logger.success("ok");
+            });
             return {
                 code: 200,
                 response: data

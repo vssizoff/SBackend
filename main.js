@@ -140,4 +140,7 @@ app.addFilesJson(files, p => path.resolve(p));
 
 app.start(() => {
     app.logger.message(app.routes);
+    app.question("test", text => {
+        app.logger.success("ok");
+    });
 });
