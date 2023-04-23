@@ -6,7 +6,7 @@ import fileUpload from "express-fileupload";
 import readline from "node:readline";
 import { stdin as input, stdout as output } from 'process';
 
-let defaultConfig = {
+export let defaultConfig = {
     port: 8080,
     name: "app",
     version: "0.0.0",
