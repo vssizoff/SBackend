@@ -1,6 +1,6 @@
 {
   "name": "sbackend",
-  "version": "0.0.2s3",
+  "version": "0.0.2s4",
   "description": "",
   "main": "index.mjs",
   "author": "sizoff",
@@ -18,5 +18,6 @@
     "url": "https://github.com/vssizoff/SBackend/issues"
   },
   "homepage": "https://github.com/vssizoff/SBackend#readme",
-  "readme": "README.md"
+  "readme": "README.md",
+  "keywords": ["backend", "headers", "express"]
 }
