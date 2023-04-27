@@ -1,3 +1,16 @@
+![SBackend docs](./SBackend.png)
+<p align="center">SBackend - backend framework based on <a href="https://www.npmjs.com/package/express">express</a></p>
+
+# Table of Contents
+> 1. [Installation](#installation)
+> 2. [Starting](#starting)
+> 3. [Registering handlers](#registering-handlers)
+> 4. [Sending files](#sending-files)
+> 5. [Keyboard](#keyboard)
+> 6. [Stop / pause / resume / restart server](#stop--pause--resume--restart-server)
+> 7. [Events](#events)
+> 8. [Files (utf-8)](#files-utf-8)
+> 9. [Other](#other)
 # Installation
 * Init node project
 * Type this in console
@@ -6,7 +19,7 @@ npm i sbackend
 ```
 # Starting
 ## Creating an app
-#### esm
+esm
 ```javascript
 import SBackend from "sbackend";
 
@@ -14,7 +27,7 @@ let app = new SBackend();
 
 app.start();
 ```
-#### cjs
+cjs
 ```javascript
 const SBackend = require("sbackend")
 
@@ -22,7 +35,7 @@ let app = new SBackend();
 
 app.start();
 ```
-### Server will log:
+Server will log:
 ```
 --++== app v0.0.0; port: 8080 ==++--
 ```
@@ -34,7 +47,7 @@ let app = new SBackend({
     version: "0.0.1"
 });
 ```
-### Server will log:
+Server will log:
 ```
 --++== test v0.0.1; port: 8888 ==++--
 ```
@@ -49,33 +62,33 @@ let app = new SBackend({
 
 app.logger.message("test");
 ```
-### In console:
+In console:
 ```
 2023.3.30 13:41:0: info: test
 
 --++== test v0.0.0; port: 8888 ==++--
 ```
-### In latest.log:
+In latest.log:
 ```log
 2023.3.30 14:22:44: info: test
 --++== test v0.0.0; port: 8888 ==++--
 ```
-Why does our message was logged before *"--++== test v0.0.0; port: 8888 ==++--"*?  
-Because server was started after it.
+> Why does our message was logged before *"--++== test v0.0.0; port: 8888 ==++--"*?  
+> Because server was started after it.
 ## Start callback
 ```javascript
 app.start();
 
 app.logger.message("test");
 ```
-This message will be logged before *"--++== test v0.0.0; port: 8888 ==++--"*.  
-How can we handle server starting? Using start callback.
+> This message will be logged before *"--++== test v0.0.0; port: 8888 ==++--"*.  
+> How can we handle server starting? Using start callback.
 ```javascript
 app.start(() => {
     app.logger.message("test");
 });
 ```
-### Server will log:
+Server will log:
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
@@ -93,7 +106,7 @@ app.post("/post", (data, app, response, request, errorFunc) => {
     };
 });
 ```
-#### Server will log (after handling request):
+Server will log (after handling request):
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
@@ -127,7 +140,7 @@ app.get("/get", (data, app, response, request, errorFunc) => {
     };
 });
 ```
-#### Server will log (after handling request):
+Server will log (after handling request):
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
@@ -158,7 +171,7 @@ app.formData("/formdata", (data, app, response, request, errorFunc) => {
     };
 });
 ```
-#### Server will log (after handling request):
+Server will log (after handling request):
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
@@ -192,23 +205,23 @@ app.formData("/formdata", (data, app, response, request, errorFunc) => {
 }. Response: "ok"
 ```
 ### Raw POST
-#### No request body parsing, no logging, no error handling.
+No request body parsing, no logging, no error handling.
 ```javascript
 app.rawPost("/post", (request, response, app) => {
     response.status(200);
     response.end("ok");
 });
 ```
-#### Server will log only init message.
+Server will log only init message.
 ### Raw GET
-#### No logging, no error handling.
+No logging, no error handling.
 ```javascript
 app.rawGet("/post", (request, response, app) => {
     response.status(200);
     response.end("ok");
 });
 ```
-#### Server will log only init message.
+Server will log only init message.
 ### Other type
 ```javascript
 import SBackend from "sbackend";
@@ -300,7 +313,7 @@ export default {
     }
 }
 ```
-#### Server will log (after handling requests):
+Server will log (after handling requests):
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
@@ -409,13 +422,13 @@ app.addFile("/some_file", path.resolve("./main.js"));
 
 app.start();
 ```
-#### Server will log (after handling request):
+Server will log (after handling request):
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
 2023.3.30 17:58:27: request: Handled request to /some_file
 ```
-#### Response:
+<!-- Response:
 ```javascript
 import SBackend from "sbackend";
 import path from "path";
@@ -430,7 +443,7 @@ let app = new SBackend({
 app.addFolder("/folder", path.resolve("."));
 
 app.start();
-```
+``` -->
 ## One folder
 ```javascript
 import SBackend from "sbackend";
@@ -447,13 +460,13 @@ app.addFolder("/folder", path.resolve("."));
 
 app.start();
 ```
-#### Server will log (after handling request):
+Server will log (after handling request):
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
 2023.3.30 18:5:59: request: Handled request to /folder/main.js
 ```
-#### Response:
+<!-- #### Response:
 ```javascript
 import SBackend from "sbackend";
 import path from "path";
@@ -468,7 +481,7 @@ let app = new SBackend({
 app.addFolder("/folder", path.resolve("."));
 
 app.start();
-```
+``` -->
 ## Multiple
 ```javascript
 import SBackend from "sbackend";
@@ -492,7 +505,7 @@ app.addHandlers({
 
 app.start();
 ```
-#### Server will log (after handling request):
+Server will log (after handling request):
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
@@ -500,7 +513,7 @@ app.start();
 
 2023.3.30 18:11:23: request: Handled request to /folder/main.js
 ```
-#### Both responses:
+<!-- #### Both responses:
 ```javascript
 import SBackend from "sbackend";
 import path from "path";
@@ -522,7 +535,7 @@ app.addHandlers({
 })
 
 app.start();
-```
+``` -->
 ## From json
 ### main.js
 ```javascript
