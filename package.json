@@ -16,7 +16,7 @@
   "type": "module",
   "repository": {
 	"type": "git",
-    "url": "https://github.com/vssizoff/SBackend"
+    "url": "git+https://github.com/vssizoff/SBackend.git"
   },
   "bugs": {
     "url": "https://github.com/vssizoff/SBackend/issues"

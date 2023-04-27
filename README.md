@@ -1,5 +1,5 @@
-<h1 align="center">SBackend docs</h1>
-<p align="center">SBackend - server framework based on <a href="https://www.npmjs.com/package/express">express</a></p>
+![SBackend docs](./SBackend.png)
+<p align="center">SBackend - backend framework based on <a href="https://www.npmjs.com/package/express">express</a></p>
 
 # Table of Contents
 > 1. [Installation](#installation)
