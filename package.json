@@ -22,5 +22,6 @@
     "url": "https://github.com/vssizoff/SBackend/issues"
   },
   "homepage": "https://github.com/vssizoff/SBackend#readme",
-  "readme": "README.md"
+  "readme": "README.md",
+  "keywords": ["backend", "headers", "express"]
 }
