@@ -1,3 +1,6 @@
+<h1 align="center">SBackend docs</h1>
+<p>SBackend - server framework based on <a href="https://www.npmjs.com/package/express">express</a></p>
+
 # Table of Contents
 > 1. [Installation](#installation)
 > 2. [Starting](#starting)
