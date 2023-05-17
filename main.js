@@ -1,4 +1,4 @@
-import SBackend from "./sBackend/index.mjs";
+import SBackend from "./sBackend/index.js";
 import test from "./test.js";
 import path from "path";
 import files from "./files.json" assert { type: "json" };
@@ -33,110 +33,17 @@ app.addKeyboardCommand("timeout", () => {
     setTimeout(() => app.resume(), 10000);
 });
 
-app.post("/test", (data, app, response, request) => {
-    // app.logger.success("test request");
-    // app.logger.message(data);
-    // app.logger.message(url);
-    // app.logger.message(JSON.stringify(query));
-    app.logger.success({
-        test: "test",
-        test0: 16,
-        test1: true,
-        test2: {
-            test: "test",
-            test0: 16,
-            test1: true,
-            test2: {
-                test: "test",
-                test0: 16,
-                test1: true
-            }
-        },
-        test3: [
-            "test",
-            16,
-            true,
-            {
-                test: "test",
-                test0: 16,
-                test1: true,
-                test2: {
-                    test: "test",
-                    test0: 16,
-                    test1: true
-                }
-            }
-        ]
-    });
-    // app.logger.message("test");
-    app.logger.messageColourise(["test", 16, true, {
-        test: "test",
-        test0: 16,
-        test1: true
-    }, ["test", 16, true, {
-        test: "test",
-        test0: 16,
-        test1: true
-    }]]);
-    app.logger.requestError("test", JSON.stringify({
-        test: "test",
-        test0: 16,
-        test1: true,
-        test2: ["test", 16, true, {
-            test: "test",
-            test0: 16,
-            test1: true
-        }]
-    }), "test", {inputFormat: "object"})
-    app.logger.requestError("test", undefined, "test", {inputFormat: "object"});
-    app.logger.request("test", 200, {
-        test: "test",
-        test0: 16,
-        test1: true,
-        test2: ["test", 16, true, {
-            test: "test",
-            test0: 16,
-            test1: true
-        }]
-    }, JSON.stringify({
-        test: "test",
-        test0: 16,
-        test1: true,
-        test2: ["test", 16, true, {
-            test: "test",
-            test0: 16,
-            test1: true
-        }]
-    }), {
-        test: "test",
-        test0: 16,
-        test1: true,
-        test2: ["test", 16, true, {
-            test: "test",
-            test0: 16,
-            test1: true
-        }]
-    }, JSON.stringify({
-        test: "test",
-        test0: 16,
-        test1: true,
-        test2: ["test", 16, true, {
-            test: "test",
-            test0: 16,
-            test1: true
-        }]
-    }))
-    return {
-        code: 200,
-        response: "ok"
-    }
-}, {
-    parseQuery: true
-});
 app.addHandlers(test);
 app.addFile("/postman", path.resolve("postman.html"));
 // app.addFolder("/", path.resolve("./sBackend"));
 app.addFilesJson(files, p => path.resolve(p));
+
+app.express.use((request, response, next) => {
+    // app.logger.message(request);
+    // app.logger.message(response);
+    console.log(request);
+    next();
+});
 
 app.start(() => {
     app.logger.message(app.routes);

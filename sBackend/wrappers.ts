@@ -1,5 +1,5 @@
-import {configValidator, queryParse} from "./functions.mjs";
-import URL from "node:url";
+import {queryParse} from "./utils.js";
+import * as URL from "node:url";
 
 let defaultConfig = {
     post: {
@@ -39,12 +39,12 @@ let defaultConfig = {
     }
 };
 
-export function setConfig(newConfig){
-    defaultConfig.global = configValidator(defaultConfig.global, newConfig.global);
-    defaultConfig.post = configValidator(defaultConfig.global, newConfig.post);
-    defaultConfig.formdata = configValidator(defaultConfig.global, newConfig.formdata);
-    defaultConfig.get = configValidator(defaultConfig.global, newConfig.get);
-}
+// export function setConfig(newConfig){
+//     defaultConfig.global = configValidator(defaultConfig.global, newConfig.global);
+//     defaultConfig.post = configValidator(defaultConfig.global, newConfig.post);
+//     defaultConfig.formdata = configValidator(defaultConfig.global, newConfig.formdata);
+//     defaultConfig.get = configValidator(defaultConfig.global, newConfig.get);
+// }
 
 export function getConfig() {
     return defaultConfig;
@@ -53,7 +53,7 @@ export function getConfig() {
 function defaultHandler(data, app, response, request, errorFunc) { return {code: 200} }
 
 export function post(handler = defaultHandler, route, config = defaultConfig.post) {
-    config = configValidator(defaultConfig.post, config);
+    config = {...defaultConfig.post, ...config};
     return (request, response,  app) => {
         let dataRaw = "";
         let query = "";
@@ -124,7 +124,7 @@ export function post(handler = defaultHandler, route, config = defaultConfig.pos
 }
 
 export function get(handler = defaultHandler, route, config = defaultConfig.get) {
-    config = configValidator(defaultConfig.get, config);
+    config = {...defaultConfig.get, ...config};
     return (request, response, app) => {
         let query = "";
         let errorFunc = err => {
@@ -177,7 +177,7 @@ export function get(handler = defaultHandler, route, config = defaultConfig.get)
 }
 
 export function formData(handler = defaultHandler, route, config = defaultConfig.formData) {
-    config = configValidator(defaultConfig.formData, config);
+    config = {...defaultConfig.formData, ...config};
     return (request, response, app) => {
         let query = "", data;
         let errorFunc = err => {

@@ -1,26 +1,19 @@
-import {configValidator} from "./functions.mjs";
-import * as wrappers from "./wrappers.mjs";
-
-let defaultConfig = {
-    wrapper: "auto",
-    inputFormat: "object",
-    outputFormat: "object",
-    parseQuery: false,
-    stringQuery: false,
-    stringRouteParams: false,
-    logging: true,
-    logRequest: true,
-    logResponse: true,
-    ifErr: ""
-}
+import SBackend from "./index.js";
+import {handlerConfigType, defaultConfig} from "./types";
 
 let defaultConfig2 = {
     wrapper: "auto"
 }
 
 export default class Handler {
-    constructor(route, type, callback, config = defaultConfig, app) {
-        config = configValidator(defaultConfig2, config)
+    route: string
+    type: string
+    callback: Function
+    config: object
+    app: SBackend
+
+    constructor(route: string, type: string, callback, config: handlerConfigType = defaultConfig.handlerConfig, app: SBackend) {
+        config = {...defaultConfig2, ...config}
         if (route.substring(0, 1) !== '/'){
             route = '/' + route;
         }
@@ -32,7 +25,7 @@ export default class Handler {
         this.setWrapper()
     }
 
-    setWrapper(wrapper = this.config.wrapper) {
+    setWrapper(wrapper: string = this.config.wrapper) {
         this.config.wrapper = wrapper
         switch (wrapper) {
             case "auto":
@@ -41,13 +34,16 @@ export default class Handler {
             case "raw":
                 break;
             case "get":
-                this.callback = wrappers.get(this.callback, this.route, this.config)
+                // this.callback = wrappers.get(this.callback, this.route, this.config)
+
                 break;
             case "post":
-                this.callback = wrappers.post(this.callback, this.route, this.config)
+                // this.callback = wrappers.post(this.callback, this.route, this.config)
+
                 break;
             case "post.formData":
-                this.callback = wrappers.formData(this.callback, this.route, this.config)
+                // this.callback = wrappers.formData(this.callback, this.route, this.config)
+
                 break;
             default:
                 this.app.logger.error("Not supported wrapper")
