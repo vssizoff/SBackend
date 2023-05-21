@@ -1,23 +1,30 @@
 import express from "express";
-import Logger from "./logger.js"
-import Handler from "./handler.js";
+import Logger from "./logger.mjs"
+import Handler from "./handler.mjs";
 import fileUpload from "express-fileupload";
 import * as readline from "node:readline";
 import {stdin as input, stdout as output} from 'process';
-import * as http from "http";
-import { configType, handlerConfigType, defaultConfig } from "./types";
+import {defaultConfig} from "./types.mjs";
+import {requestBodyParserMiddleware} from "./requestBodyParser.mjs";
+import {autoLogEnable, requestLoggerMiddleware} from "./requestLogger.mjs";
+import wrapper from "./wrapper.mjs";
+import {sendErrorMiddleware} from "./sendError.mjs";
+import {headersParserMiddleware, queryParserMiddleware, routeParamsParserMiddleware} from "./parsers.mjs";
+import {endJSONMiddleware} from "./endJSON.mjs";
+import {sendHandlersMiddleware} from "./sendHandlers.mjs";
+import {responseHeadersMiddleware} from "./responseHeaders.mjs";
 
-export type eventHandlerType = (app: SBackend) => void;
-
-export type keyboardEventHandlerType = (answer: string) => void;
+// export type eventHandlerType = (app: SBackend) => void;
+//
+// export type keyboardEventHandlerType = (answer: string) => void;
 
 let log = console.log;
 
-function wrapper(handler) {
-    return (request, response) => {
-        handler.run(request, response)
-    }
-}
+// function wrapper(handler) {
+//     return (request, response) => {
+//         handler.run(request, response)
+//     }
+// }
 
 export function handlersFormat(handlers, app) {
     if (typeof handlers === "function") {
@@ -53,30 +60,41 @@ export function handlersFormat(handlers, app) {
 }
 
 export default class SBackend {
-    config: configType = defaultConfig
-    logger: Logger
+    config = defaultConfig
+    logger
     express = express();
-    expressUse: Array<Array<any>> = [];
-    handlers: Array<Handler> = [];
-    keyboardCommands: Array<{command: string, callback: keyboardEventHandlerType}> = [];
-    routes: Array<{route: string} & ({type: string, wrapper: string} | {dir: string} | {path: string})> = [];
-    rlStopped: boolean = false;
+    expressUse = [];
+    handlers = [];
+    keyboardCommands = [];
+    routes = [];
+    rlStopped = false;
     readline = readline.createInterface({input, output});
-    server?: http.Server = undefined;
-    onStart: Array<eventHandlerType> = [];
-    onPause: Array<eventHandlerType> = [];
-    onResume: Array<eventHandlerType> = [];
-    onStop: Array<eventHandlerType> = [];
-    onRestart: Array<eventHandlerType> = [];
-    defaultKeyboardHandler: keyboardEventHandlerType = () => undefined;
+    server = undefined;
+    onStart = [];
+    onPause = [];
+    onResume = [];
+    onStop = [];
+    onRestart = [];
+    defaultKeyboardHandler = () => undefined;
 
-    constructor(config: configType = defaultConfig) {
-        this.use(fileUpload({}));
+    constructor(config = defaultConfig) {
         this.setConfig(config);
+        this.use(endJSONMiddleware);
+        this.use(sendHandlersMiddleware)
+        this.use(fileUpload({}));
+        this.use(requestBodyParserMiddleware);
+        this.use(autoLogEnable);
+        this.use(requestLoggerMiddleware);
+        this.use(sendErrorMiddleware(this.config.handlerConfig.ifErr));
+        this.use(queryParserMiddleware);
+        this.use(headersParserMiddleware);
+        this.use(routeParamsParserMiddleware);
+        this.use(responseHeadersMiddleware);
+        this.use((request, response) => response.set({"X-Powered-By": "SBackend"}));
         this.initRl();
     }
 
-    on(event: "start" | "pause" | "resume" | "stop" | "restart", callback: eventHandlerType): void {
+    on(event, callback) {
         switch (event.toLowerCase()) {
             case "start":
                 this.onStart.push(callback);
@@ -96,12 +114,12 @@ export default class SBackend {
         }
     }
 
-    setConfig(config: configType = defaultConfig): void {
+    setConfig(config = defaultConfig) {
         this.config = {...defaultConfig, ...config};
         this.logger = new Logger(this.config.logPath);
     }
 
-    initRl(): void {
+    initRl() {
         let app = this;
         console.log = function() {
             if (!app.rlStopped) {
@@ -134,11 +152,11 @@ export default class SBackend {
         });
     }
 
-    question(text: string, callback: keyboardEventHandlerType): void {
+    question(text, callback) {
         this.readline.question(text + this.config.questionString, callback);
     }
 
-    addHandler(route: string, type: string, callback, config: handlerConfigType = defaultConfig.handlerConfig, routePush: boolean = true): void {
+    addHandler(route, type, callback, config = defaultConfig.handlerConfig, routePush = true) {
         if (route.substring(0, 1) !== '/'){
             route = '/' + route;
         }
@@ -149,7 +167,7 @@ export default class SBackend {
         }
     }
 
-    addHandlers(handlers: Array<any> | object): void {
+    addHandlers(handlers) {
         handlers = handlersFormat(handlers, this);
         Object.keys(handlers).forEach(type => {
             Object.keys(handlers[type]).forEach(route => {
@@ -166,27 +184,27 @@ export default class SBackend {
         });
     }
 
-    post(route: string, callback, config: handlerConfigType = defaultConfig.handlerConfig, routePush: boolean = true): void {
+    post(route, callback, config = defaultConfig.handlerConfig, routePush = true) {
         this.addHandler(route, "post", callback, {...config, wrapper: "post"}, routePush);
     }
 
-    get(route: string, callback, config: handlerConfigType = defaultConfig.handlerConfig, routePush: boolean = true): void {
+    get(route, callback, config = defaultConfig.handlerConfig, routePush = true) {
         this.addHandler(route, "get", callback, {...config, wrapper: "get"}, routePush);
     }
 
-    formData(route: string, callback, config: handlerConfigType = defaultConfig.handlerConfig, routePush: boolean = true): void {
+    formData(route, callback, config = defaultConfig.handlerConfig, routePush = true) {
         this.addHandler(route, "post", callback, {...config, wrapper: "post.formData"}, routePush);
     }
 
-    rawPost(route: string, callback, config: handlerConfigType = defaultConfig.handlerConfig, routePush: boolean = true): void {
+    rawPost(route, callback, config = defaultConfig.handlerConfig, routePush = true) {
         this.addHandler(route, "post", callback, {...config, wrapper: "raw"}, routePush);
     }
 
-    rawGet(route: string, callback, config: handlerConfigType = defaultConfig.handlerConfig, routePush: boolean = true): void {
+    rawGet(route, callback, config = defaultConfig.handlerConfig, routePush = true) {
         this.addHandler(route, "get", callback, {...config, wrapper: "raw"}, routePush);
     }
 
-    addFolder(route: string, path: string, logging: boolean = true): void {
+    addFolder(route, path, logging = true) {
         if (route !== null && typeof route === "string" && route.length > 0 && path !== null && typeof path === "string" && path.length > 0){
             if (route.substring(0, 1) !== '/'){
                 route = '/' + route;
@@ -206,7 +224,7 @@ export default class SBackend {
         }
     }
 
-    addFile(route: string, path: string, logging: boolean = true): void {
+    addFile(route, path, logging = true) {
         if (route.substring(0, 1) !== '/'){
             route = '/' + route;
         }
@@ -216,21 +234,27 @@ export default class SBackend {
         this.routes.push({route, path});
     }
 
-    addFilesJson(files: {[key: string]: string}, pathResolve: (path: string) => string, logging: boolean = true): void {
+    addFilesJson(files, pathResolve, logging = true) {
         Object.keys(files).forEach(route => {
             this.addFile(route, pathResolve(files[route]), logging);
         });
     }
 
-    use(...args): void {
-        this.expressUse.push(args);
+    use(routeOrCallback, callback) {
+        let route = routeOrCallback;
+        if (callback === undefined) {
+            callback = routeOrCallback;
+            route = undefined;
+        }
+        callback = wrapper(this, callback, route);
+        this.expressUse.push(route === undefined ? [callback] : [route, callback]);
     }
 
-    addKeyboardCommand(command: string, callback: keyboardEventHandlerType): void {
+    addKeyboardCommand(command, callback) {
         this.keyboardCommands.push({command, callback});
     }
 
-    addKeyboardCommands(commands: Array<{command: string, callback: keyboardEventHandlerType}> | {[key: string]: keyboardEventHandlerType}): void {
+    addKeyboardCommands(commands) {
         if (typeof commands !== "object") return;
         if (Array.isArray(commands)) {
             commands.forEach(command => {
@@ -243,35 +267,35 @@ export default class SBackend {
         });
     }
 
-    start(callback: eventHandlerType = undefined, runEvents: boolean = true): http.Server {
+    start(callback = undefined, runEvents = true) {
         this.expressUse.forEach(value => {
             this.express.use(...value);
         });
         this.handlers.forEach(handler => {
             switch (handler.type) {
                 case "post":
-                    this.express.post(handler.route, wrapper(handler));
+                    this.express.post(handler.route, wrapper(this, handler.run));
                     break;
                 case "get":
-                    this.express.get(handler.route, wrapper(handler));
+                    this.express.get(handler.route, wrapper(this, handler.run));
                     break;
                 case "head":
-                    this.express.head(handler.route, wrapper(handler));
+                    this.express.head(handler.route, wrapper(this, handler.run));
                     break;
                 case "put":
-                    this.express.put(handler.route, wrapper(handler));
+                    this.express.put(handler.route, wrapper(this, handler.run));
                     break;
                 case "delete":
-                    this.express.delete(handler.route, wrapper(handler));
+                    this.express.delete(handler.route, wrapper(this, handler.run));
                     break;
                 case "options":
-                    this.express.options(handler.route, wrapper(handler));
+                    this.express.options(handler.route, wrapper(this, handler.run));
                     break;
                 case "connect":
-                    this.express.connect(handler.route, wrapper(handler));
+                    this.express.connect(handler.route, wrapper(this, handler.run));
                     break;
                 case "patch":
-                    this.express.patch(handler.route, wrapper(handler));
+                    this.express.patch(handler.route, wrapper(this, handler.run));
                     break;
             }
         });
@@ -294,7 +318,7 @@ export default class SBackend {
         return this.server;
     }
 
-    pause(stopRl: boolean = false, callback: eventHandlerType = undefined, runEvents: boolean = true): void {
+    pause(stopRl = false, callback = undefined, runEvents = true) {
         if (stopRl) {
             this.readline.pause();
             this.rlStopped = true;
@@ -306,7 +330,7 @@ export default class SBackend {
         });
     }
 
-    resume(rerunCallback: boolean = false, callback: eventHandlerType = undefined, runEvents: boolean = true): void {
+    resume(rerunCallback = false, callback = undefined, runEvents = true) {
         this.express = express();
         this.express.use(fileUpload({}));
         if (this.rlStopped) {
@@ -324,7 +348,7 @@ export default class SBackend {
         }, false);
     }
 
-    stop(code: number = 0, callback: eventHandlerType = undefined, runEvents: boolean = true): void {
+    stop(code = 0, callback = undefined, runEvents = true) {
         this.pause(true, () => {
             if (callback !== undefined && typeof callback === "function") callback(this);
             if (runEvents) this.onStop.forEach(fn => {fn(this)});
@@ -332,7 +356,7 @@ export default class SBackend {
         }, false);
     }
 
-    restart(rerunCallback: boolean = true, callback: eventHandlerType = undefined, runEvents: boolean = true): void {
+    restart(rerunCallback = true, callback = undefined, runEvents = true) {
         this.pause(true, () => {return undefined}, true);
         this.resume(rerunCallback, () => {
             if (callback !== undefined && typeof callback === "function") callback(this);

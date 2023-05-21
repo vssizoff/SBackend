@@ -1,6 +1,6 @@
 import * as fs from "node:fs"
 
-export function write(path, data: string) {
+export function write(path, data) {
     fs.writeFileSync(path, data, {encoding: "utf-8"});
 }
 
@@ -8,7 +8,7 @@ export function read(path) {
     return fs.readFileSync(path, {encoding: "utf-8"})
 }
 
-export function writeObject(path, data: object) {
+export function writeObject(path, data) {
     write(path, JSON.stringify(data));
 }
 
@@ -17,19 +17,19 @@ export function readObject(path) {
 }
 
 export function append(path, ...data) {
-    write(path, data.map(elem => read(path) + elem).join(""));
+    write(path, read(path) + data.map(elem => typeof elem === "object" ? JSON.stringify(elem) : elem).join(' '));
 }
 
 export class File {
-    path: string
-    data: string | object
+    path
+    data
 
     constructor(path) {
         this.path = path;
         this.data = undefined;
     }
 
-    write(data: string) {
+    write(data) {
         write(this.path, data);
     }
 
@@ -38,7 +38,7 @@ export class File {
         return this.data;
     }
 
-    writeObject(data: object) {
+    writeObject(data) {
         writeObject(this.path, data);
     }
 

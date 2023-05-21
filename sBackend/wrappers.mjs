@@ -1,4 +1,4 @@
-import {queryParse} from "./utils.js";
+import {queryParse} from "./utils.mjs";
 import * as URL from "node:url";
 
 let defaultConfig = {

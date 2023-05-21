@@ -559,7 +559,7 @@ app.start();
 {
   "/log": "./latest.log",
   "/srequest": "./sRequest.js",
-  "/functions": "./sBackend/files.ts"
+  "/functions": "./sBackend/files.mjs"
 }
 ```
 # Keyboard
@@ -606,14 +606,14 @@ app.on("restart", () => {app.logger.message("Server restarted")});
 # Files (utf-8)
 ## Read file
 ```javascript
-import * as files from "sbackend/files.ts";
+import * as files from "sbackend/files.mjs";
 
 console.log(files.read("test.txt"));
 console.log(files.readObject("test.json"));
 ```
 ## Write file
 ```javascript
-import * as files from "sbackend/files.ts";
+import * as files from "sbackend/files.mjs";
 
 files.write("test.txt", "SBackend test file");
 files.writeObject("test.json", {
@@ -624,7 +624,7 @@ files.writeObject("test.json", {
 ```
 ## Append to file
 ```javascript
-import * as files from "sbackend/files.ts";
+import * as files from "sbackend/files.mjs";
 
 files.write("test.txt", "SBackend");
 files.append("test.txt", " test file");
@@ -632,7 +632,7 @@ console.log(files.read("test.txt")) // SBackend test file
 ```
 ## File class
 ```javascript
-import * as files from "sbackend/files.ts";
+import * as files from "sbackend/files.mjs";
 
 let file = new files.File("test.txt");
 

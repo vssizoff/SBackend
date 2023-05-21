@@ -1,7 +1,7 @@
-import SBackend from "./sBackend/index.js";
+import SBackend from "./sBackend/index.mjs";
 import test from "./test.js";
 import path from "path";
-import files from "./files.json" assert { type: "json" };
+import files from "./files.json" assert {type: "json"};
 
 let app = new SBackend({
     port: 8888,
@@ -38,16 +38,19 @@ app.addFile("/postman", path.resolve("postman.html"));
 // app.addFolder("/", path.resolve("./sBackend"));
 app.addFilesJson(files, p => path.resolve(p));
 
-app.express.use((request, response, next) => {
+app.use(function (request, response) {
     // app.logger.message(request);
     // app.logger.message(response);
-    console.log(request);
-    next();
+    this.logger.message(response.headers);
+    response.headers = {
+        test: true
+    };
+    response.end();
 });
 
 app.start(() => {
     app.logger.message(app.routes);
-    app.question("test", text => {
-        app.logger.success("ok");
-    });
+    // app.question("test", text => {
+    //     app.logger.success("ok");
+    // });
 });

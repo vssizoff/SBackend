@@ -1,18 +1,17 @@
-import SBackend from "./index.js";
-import {handlerConfigType, defaultConfig} from "./types";
+import {defaultConfig} from "./types.mjs";
 
 let defaultConfig2 = {
     wrapper: "auto"
 }
 
 export default class Handler {
-    route: string
-    type: string
-    callback: Function
-    config: object
-    app: SBackend
+    route
+    type
+    callback
+    config
+    app
 
-    constructor(route: string, type: string, callback, config: handlerConfigType = defaultConfig.handlerConfig, app: SBackend) {
+    constructor(route, type, callback, config = defaultConfig.handlerConfig, app) {
         config = {...defaultConfig2, ...config}
         if (route.substring(0, 1) !== '/'){
             route = '/' + route;
@@ -25,7 +24,7 @@ export default class Handler {
         this.setWrapper()
     }
 
-    setWrapper(wrapper: string = this.config.wrapper) {
+    setWrapper(wrapper = this.config.wrapper) {
         this.config.wrapper = wrapper
         switch (wrapper) {
             case "auto":
