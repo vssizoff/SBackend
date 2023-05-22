@@ -1,6 +1,5 @@
 import express from "express";
 import Logger from "./logger.mjs"
-import Handler from "./handler.mjs";
 import fileUpload from "express-fileupload";
 import * as readline from "node:readline";
 import {stdin as input, stdout as output} from 'process';
@@ -161,9 +160,10 @@ export default class SBackend {
             route = '/' + route;
         }
         type = config.type || type
-        this.handlers.push(new Handler(route, type, callback, config, this))
+        // this.handlers.push(new Handler(route, type, callback, config, this))
+        this.handlers.push({route, type, callback});
         if (routePush) {
-            this.routes.push({route, type, wrapper: config.wrapper});
+            this.routes.push({route, type});
         }
     }
 
@@ -274,28 +274,28 @@ export default class SBackend {
         this.handlers.forEach(handler => {
             switch (handler.type) {
                 case "post":
-                    this.express.post(handler.route, wrapper(this, handler.run));
+                    this.express.post(handler.route, wrapper(this, handler.callback, handler.route));
                     break;
                 case "get":
-                    this.express.get(handler.route, wrapper(this, handler.run));
+                    this.express.get(handler.route, wrapper(this, handler.callback, handler.route));
                     break;
                 case "head":
-                    this.express.head(handler.route, wrapper(this, handler.run));
+                    this.express.head(handler.route, wrapper(this, handler.callback, handler.route));
                     break;
                 case "put":
-                    this.express.put(handler.route, wrapper(this, handler.run));
+                    this.express.put(handler.route, wrapper(this, handler.callback, handler.route));
                     break;
                 case "delete":
-                    this.express.delete(handler.route, wrapper(this, handler.run));
+                    this.express.delete(handler.route, wrapper(this, handler.callback, handler.route));
                     break;
                 case "options":
-                    this.express.options(handler.route, wrapper(this, handler.run));
+                    this.express.options(handler.route, wrapper(this, handler.callback, handler.route));
                     break;
                 case "connect":
-                    this.express.connect(handler.route, wrapper(this, handler.run));
+                    this.express.connect(handler.route, wrapper(this, handler.callback, handler.route));
                     break;
                 case "patch":
-                    this.express.patch(handler.route, wrapper(this, handler.run));
+                    this.express.patch(handler.route, wrapper(this, handler.callback, handler.route));
                     break;
             }
         });

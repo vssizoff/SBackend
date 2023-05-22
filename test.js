@@ -2,21 +2,19 @@ import path from "path";
 
 export default {
     "/test_get": {
-        callback(data, app, response, request) {
-            app.logger.message(data.url);
-            app.logger.message(data.query);
-            app.question("test", text => {
-                app.logger.success("ok");
+        callback(request, response) {
+            this.logger.message(this.url);
+            this.logger.message(this.query);
+            this.question("test", text => {
+                this.logger.success("ok");
             });
-            return {
-                code: 200,
-                response: data
-            }
+            response.status(200);
+            response.end();
         },
         type: "get"
     },
     "/test_formData": {
-        callback(data, app, response, request) {
+        callback(request, response) {
             // app.logger.message(data.request);
             app.logger.message(Object.keys(data.files));
             // app.logger.message(data.url);

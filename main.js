@@ -45,7 +45,7 @@ app.use(function (request, response) {
     response.headers = {
         test: true
     };
-    response.end();
+    return true;
 });
 
 app.start(() => {
