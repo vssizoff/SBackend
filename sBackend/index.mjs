@@ -1,62 +1,20 @@
 import express from "express";
 import Logger from "./logger.mjs"
-import fileUpload from "express-fileupload";
 import * as readline from "node:readline";
-import {stdin as input, stdout as output} from 'process';
 import {defaultConfig} from "./types.mjs";
-import {requestBodyParserMiddleware} from "./requestBodyParser.mjs";
-import {autoLogEnable, requestLoggerMiddleware} from "./requestLogger.mjs";
-import wrapper from "./wrapper.mjs";
-import {sendErrorMiddleware} from "./sendError.mjs";
-import {headersParserMiddleware, queryParserMiddleware, routeParamsParserMiddleware} from "./parsers.mjs";
+import fileUpload from "express-fileupload";
 import {endJSONMiddleware} from "./endJSON.mjs";
+import {sendErrorMiddleware} from "./sendError.mjs";
+import {handlersFormat, wrapper} from "./handlers.mjs";
+import {stdin as input, stdout as output} from 'process';
 import {sendHandlersMiddleware} from "./sendHandlers.mjs";
 import {responseHeadersMiddleware} from "./responseHeaders.mjs";
-
-// export type eventHandlerType = (app: SBackend) => void;
-//
-// export type keyboardEventHandlerType = (answer: string) => void;
+import {requestBodyParserMiddleware} from "./requestBodyParser.mjs";
+import {autoLogEnable, requestLoggerMiddleware} from "./requestLogger.mjs";
+import {headersParserMiddleware, queryParserMiddleware, routeParamsParserMiddleware} from "./parsers.mjs";
+import {statusChangeHandlersMiddleware} from "./statusChangeHandlers.mjs";
 
 let log = console.log;
-
-// function wrapper(handler) {
-//     return (request, response) => {
-//         handler.run(request, response)
-//     }
-// }
-
-export function handlersFormat(handlers, app) {
-    if (typeof handlers === "function") {
-        return handlersFormat(handlers(app), app)
-    }
-    let object = {
-        post: {},
-        get: {}
-    }
-    if (typeof handlers !== "object") {
-        app.logger.error("Not supported format");
-    }
-    if (Array.isArray(handlers)) {
-        handlers.forEach(handler => {
-            object[handler.type || "post"][handler.route || "/"] = handler;
-        });
-        return object;
-    }
-    let flag = true;
-    Object.keys(handlers).forEach(key => {
-        if (key !== "post" && key !== "get") {
-            flag = false;
-        }
-    });
-    if (flag) {
-        return handlers;
-    }
-    Object.keys(handlers).forEach(route => {
-        let handler = handlers[route];
-        object[handler.type || "post"][route] = handler;
-    });
-    return object;
-}
 
 export default class SBackend {
     config = defaultConfig
@@ -79,6 +37,7 @@ export default class SBackend {
     constructor(config = defaultConfig) {
         this.setConfig(config);
         this.use(endJSONMiddleware);
+        this.use(statusChangeHandlersMiddleware);
         this.use(sendHandlersMiddleware)
         this.use(fileUpload({}));
         this.use(requestBodyParserMiddleware);
@@ -155,12 +114,17 @@ export default class SBackend {
         this.readline.question(text + this.config.questionString, callback);
     }
 
-    addHandler(route, type, callback, config = defaultConfig.handlerConfig, routePush = true) {
+    addHandler(route, type, callback, routePush = true) {
+        type = type.toLowerCase();
+        if (type === "files") {
+            return this.addFile(route, callback);
+        }
+        if (type === "folders") {
+            return this.addFolder(route, callback);
+        }
         if (route.substring(0, 1) !== '/'){
             route = '/' + route;
         }
-        type = config.type || type
-        // this.handlers.push(new Handler(route, type, callback, config, this))
         this.handlers.push({route, type, callback});
         if (routePush) {
             this.routes.push({route, type});
@@ -171,37 +135,41 @@ export default class SBackend {
         handlers = handlersFormat(handlers, this);
         Object.keys(handlers).forEach(type => {
             Object.keys(handlers[type]).forEach(route => {
-                if ("dir" in handlers[type][route]) {
-                    this.addFolder(route, handlers[type][route].dir);
-                    return;
-                }
-                if ("path" in handlers[type][route]) {
-                    this.addFile(route, handlers[type][route].path);
-                    return;
-                }
-                this.addHandler(route, type, handlers[type][route].callback, handlers[type][route]);
+                this.addHandler(route, type, handlers[type][route]);
             });
         });
     }
 
-    post(route, callback, config = defaultConfig.handlerConfig, routePush = true) {
-        this.addHandler(route, "post", callback, {...config, wrapper: "post"}, routePush);
+    post(route, callback, routePush = true) {
+        this.addHandler(route, "post", callback, routePush);
     }
 
-    get(route, callback, config = defaultConfig.handlerConfig, routePush = true) {
-        this.addHandler(route, "get", callback, {...config, wrapper: "get"}, routePush);
+    get(route, callback, routePush = true) {
+        this.addHandler(route, "get", callback, routePush);
     }
 
-    formData(route, callback, config = defaultConfig.handlerConfig, routePush = true) {
-        this.addHandler(route, "post", callback, {...config, wrapper: "post.formData"}, routePush);
+    head(route, callback, routePush = true) {
+        this.addHandler(route, "head", callback, routePush);
     }
 
-    rawPost(route, callback, config = defaultConfig.handlerConfig, routePush = true) {
-        this.addHandler(route, "post", callback, {...config, wrapper: "raw"}, routePush);
+    put(route, callback, routePush = true) {
+        this.addHandler(route, "put", callback, routePush);
     }
 
-    rawGet(route, callback, config = defaultConfig.handlerConfig, routePush = true) {
-        this.addHandler(route, "get", callback, {...config, wrapper: "raw"}, routePush);
+    delete(route, callback, routePush = true) {
+        this.addHandler(route, "delete", callback, routePush);
+    }
+
+    options(route, callback, routePush = true) {
+        this.addHandler(route, "options", callback, routePush);
+    }
+
+    connect(route, callback, routePush = true) {
+        this.addHandler(route, "connect", callback, routePush);
+    }
+
+    patch(route, callback, routePush = true) {
+        this.addHandler(route, "patch", callback, routePush);
     }
 
     addFolder(route, path, logging = true) {
@@ -209,17 +177,9 @@ export default class SBackend {
             if (route.substring(0, 1) !== '/'){
                 route = '/' + route;
             }
-            // this.express.use(route, express.static(path));
-            // this.get(route !== '/' ? route += "/:file" : "/:file", (data, app, response, request) => {
-            //     response.sendFile(`${path}/${request.params.file}`);
-            // }, {logging}, false)
-            // this.get(route !== '/' ? route += "/:file/*" : "/:file/*", (data, app, response, request) => {
-            //     let file = data.url.substring(route.length);
-            //     response.sendFile(`${path}/${file}`);
-            // }, {logging}, false)
-            this.get(route !== '/' ? route += "/*" : "/*", (data, app, response) => {
-                response.sendFile(`${path}/${data.afterRoute}`);
-            }, {logging}, false)
+            this.get(route !== '/' ? route += "/*" : "/*", (request, response) => {
+                response.sendFile(`${path}/${request.afterRoute}`);
+            }, false)
             this.routes.push({route, dir: path});
         }
     }
@@ -228,10 +188,14 @@ export default class SBackend {
         if (route.substring(0, 1) !== '/'){
             route = '/' + route;
         }
-        this.get(route, (data, app, response) => {
+        this.get(route, (request, response) => {
             response.sendFile(path);
-        }, {logging}, false);
+        }, false);
         this.routes.push({route, path});
+    }
+
+    addPath(route, path, logging = true) {
+
     }
 
     addFilesJson(files, pathResolve, logging = true) {
@@ -272,32 +236,7 @@ export default class SBackend {
             this.express.use(...value);
         });
         this.handlers.forEach(handler => {
-            switch (handler.type) {
-                case "post":
-                    this.express.post(handler.route, wrapper(this, handler.callback, handler.route));
-                    break;
-                case "get":
-                    this.express.get(handler.route, wrapper(this, handler.callback, handler.route));
-                    break;
-                case "head":
-                    this.express.head(handler.route, wrapper(this, handler.callback, handler.route));
-                    break;
-                case "put":
-                    this.express.put(handler.route, wrapper(this, handler.callback, handler.route));
-                    break;
-                case "delete":
-                    this.express.delete(handler.route, wrapper(this, handler.callback, handler.route));
-                    break;
-                case "options":
-                    this.express.options(handler.route, wrapper(this, handler.callback, handler.route));
-                    break;
-                case "connect":
-                    this.express.connect(handler.route, wrapper(this, handler.callback, handler.route));
-                    break;
-                case "patch":
-                    this.express.patch(handler.route, wrapper(this, handler.callback, handler.route));
-                    break;
-            }
+            this.express[handler.type](handler.route, wrapper(this, handler.callback, handler.route));
         });
         this.server = this.express.listen(this.config.port, () => {
             let errorFunc = err => {

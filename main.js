@@ -10,18 +10,10 @@ let app = new SBackend({
     logPath: "./latest.log"
 });
 
-// app.onStop = ;
-// app.onPause = ;
-// app.onResume = ;
-// app.onRestart = ;
-
 app.on("stop", () => {app.logger.message("Server stopped")});
 app.on("pause", () => {app.logger.message("Server paused")});
 app.on("resume", () => {app.logger.message("Server resumed")});
 app.on("restart", () => {app.logger.message("Server restarted")});
-
-// process.on('SIGTERM', () => app.stop());
-// process.on('SIGINT', () => app.stop());
 
 app.defaultKeyboardHandler = answer => app.logger.message(answer);
 app.addKeyboardCommand("stop", () => app.stop());
@@ -39,18 +31,25 @@ app.addFile("/postman", path.resolve("postman.html"));
 app.addFilesJson(files, p => path.resolve(p));
 
 app.use(function (request, response) {
-    // app.logger.message(request);
-    // app.logger.message(response);
-    this.logger.message(response.headers);
-    response.headers = {
-        test: true
-    };
+    // this.logger.message(response.headers);
+    // response.headers = {
+    //     test: true
+    // };
+    // return true;
+    // response.status(288);
+    // response.end({
+    //     body: request.body
+    // });
+    this.logger.message({
+        request: request.body,
+        params: request.params,
+        afterRoute: request.afterRoute,
+        headers: request.headers,
+        query: request.query
+    });
     return true;
 });
 
 app.start(() => {
     app.logger.message(app.routes);
-    // app.question("test", text => {
-    //     app.logger.success("ok");
-    // });
 });

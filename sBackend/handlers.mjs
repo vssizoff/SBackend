@@ -1,4 +1,4 @@
-export default function (app, func, route) {
+export function wrapper(app, func, route) {
     func = func.bind(app);
     return function (request, response, next) {
         if (route !== undefined) {
@@ -13,4 +13,14 @@ export default function (app, func, route) {
             response.sendError(error);
         }
     }
+}
+
+export function handlersFormat(handlers, app) {
+    if (typeof handlers === "function") {
+        return handlersFormat(handlers(app), app)
+    }
+    if (typeof handlers !== "object" || Object.keys(handlers).length === 0) return {};
+    let object = {};
+    Object.keys(handlers).forEach(key => object[key.toLowerCase()] = handlers[key]);
+    return object;
 }

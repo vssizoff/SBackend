@@ -1,4 +1,5 @@
-import * as fs from "node:fs"
+import * as fs from "node:fs";
+import * as flatted from "flatted";
 
 export function write(path, data) {
     fs.writeFileSync(path, data, {encoding: "utf-8"});
@@ -9,7 +10,7 @@ export function read(path) {
 }
 
 export function writeObject(path, data) {
-    write(path, JSON.stringify(data));
+    write(path, flatted.stringify(data));
 }
 
 export function readObject(path) {
@@ -17,7 +18,7 @@ export function readObject(path) {
 }
 
 export function append(path, ...data) {
-    write(path, read(path) + data.map(elem => typeof elem === "object" ? JSON.stringify(elem) : elem).join(' '));
+    write(path, read(path) + data.map(elem => typeof elem === "object" ? flatted.stringify(elem) : elem).join(' '));
 }
 
 export class File {

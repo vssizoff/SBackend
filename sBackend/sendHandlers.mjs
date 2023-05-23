@@ -7,54 +7,49 @@ export function sendHandlersMiddleware(request, response, next) {
     response.onAfterSend = func => {
         response.sendHandlers0.push(func.bind(this));
     };
-    let status, handler = res => {
-        response.sendHandlers0.forEach(func => func(res, status));
-    }, handler0 = res => {
-        response.sendHandlers.forEach(func => func(res, status));
+    let status, handler = (res, end) => {
+        response.sendHandlers0.forEach(func => func(res, status, end));
+    }, handler0 = (res, end) => {
+        response.sendHandlers.forEach(func => func(res, status, end));
     };
-    let Status = response.status.bind(response), sendStatus = response.sendStatus.bind(response),
-        end = response.end.bind(response), json = response.json.bind(response), jsonp = response.jsonp.bind(response),
-        send = response.send.bind(response), sendFile = response.sendFile.bind(response);
-    response.status = code => {
-        let ans = Status(code);
-        status = code;
-        return ans;
-    };
-    response.sendStatus = code => {
-        let ans = sendStatus(code);
-        status = code;
-        return ans;
-    };
+    response.onStatusChange(newStatus => status = newStatus);
+    let end = response.end.bind(response), json = response.json, jsonp = response.jsonp.bind(response),
+        send = response.send, sendFile = response.sendFile.bind(response);
     response.send = body => {
-        handler0(body);
-        let ans = send(body);
-        handler(body);
+        handler0(body, false);
+        let func = response.send, func0 = response.end;
+        response.send = send;
+        response.end = end;
+        let ans = send.bind(response)(body);
+        response.send = func;
+        response.end = func0;
+        handler(body, false);
         return ans;
     };
     response.end = (body, encoding) => {
-        handler0(body);
+        handler0(body, true);
         let ans = end(body, encoding);
-        handler(body);
+        handler(body, true);
         return ans;
     };
-    response.json = body => {
-        handler0(body);
-        let ans = json(body);
-        handler(body);
-        return ans;
-    };
-    response.jsonp = body => {
-        handler0(body);
-        let ans = jsonp(body);
-        handler(body);
-        return ans;
-    };
-    response.sendFile = (body, options, fn) => {
-        handler0(body);
-        return sendFile(body, options, error => {
-            fn(error);
-            handler(body);
-        });
-    };
+    // response.json = body => {
+    //     handler0(body);
+    //     let ans = json(body);
+    //     handler(body);
+    //     return ans;
+    // };
+    // response.jsonp = body => {
+    //     handler0(body);
+    //     let ans = jsonp(body);
+    //     handler(body);
+    //     return ans;
+    // };
+    // response.sendFile = (body, options, fn) => {
+    //     handler0(body);
+    //     return sendFile(body, options, error => {
+    //         fn(error);
+    //         handler(body);
+    //     });
+    // };
     next();
 }
