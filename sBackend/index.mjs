@@ -1,3 +1,4 @@
+import * as fs from "fs";
 import express from "express";
 import Logger from "./logger.mjs"
 import * as readline from "node:readline";
@@ -10,9 +11,9 @@ import {stdin as input, stdout as output} from 'process';
 import {sendHandlersMiddleware} from "./sendHandlers.mjs";
 import {responseHeadersMiddleware} from "./responseHeaders.mjs";
 import {requestBodyParserMiddleware} from "./requestBodyParser.mjs";
+import {statusChangeHandlersMiddleware} from "./statusChangeHandlers.mjs";
 import {autoLogEnable, requestLoggerMiddleware} from "./requestLogger.mjs";
 import {headersParserMiddleware, queryParserMiddleware, routeParamsParserMiddleware} from "./parsers.mjs";
-import {statusChangeHandlersMiddleware} from "./statusChangeHandlers.mjs";
 
 let log = console.log;
 
@@ -122,6 +123,9 @@ export default class SBackend {
         if (type === "folders") {
             return this.addFolder(route, callback);
         }
+        if (type === "paths") {
+            return this.addPath(route, callback);
+        }
         if (route.substring(0, 1) !== '/'){
             route = '/' + route;
         }
@@ -195,12 +199,12 @@ export default class SBackend {
     }
 
     addPath(route, path, logging = true) {
-
+        this[fs.lstatSync(path).isDirectory() ? "addFolder" : "addFile"](route, path, logging);
     }
 
     addFilesJson(files, pathResolve, logging = true) {
         Object.keys(files).forEach(route => {
-            this.addFile(route, pathResolve(files[route]), logging);
+            this.addPath(route, pathResolve(files[route]), logging);
         });
     }
 

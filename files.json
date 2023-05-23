@@ -1,5 +1,4 @@
 {
   "/log": "./latest.log",
-  "/srequest": "./sRequest.js",
-  "/functions": "./sBackend/files.mjs"
+  "/SBackend": "./sBackend"
 }

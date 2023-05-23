@@ -4,7 +4,7 @@ import path from "path";
 import files from "./files.json" assert {type: "json"};
 
 let app = new SBackend({
-    port: 8888,
+    port: process.env.PORT || 8888,
     name: "test",
     version: "0.0.0",
     logPath: "./latest.log"

@@ -1,17 +1,21 @@
 {
   "name": "sbackend",
-  "version": "0.1.0s1",
+  "version": "0.1.0s4",
   "description": "",
   "main": "index.mjs",
   "author": "sizoff",
   "license": "ISC",
   "dependencies": {
     "chalk": "^5.2.0",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "express-fileupload": "^1.4.0"
+    "express-fileupload": "^1.4.0",
+    "flatted": "^3.2.7",
+    "typescript": "^5.0.4",
+    "xml-js": "^1.6.11"
   },
   "repository": {
-	"type": "git",
+    "type": "git",
     "url": "https://github.com/vssizoff/SBackend"
   },
   "bugs": {
@@ -19,5 +23,10 @@
   },
   "homepage": "https://github.com/vssizoff/SBackend#readme",
   "readme": "README.md",
-  "keywords": ["backend", "headers", "express"]
+  "keywords": [
+    "backend",
+    "headers",
+    "express"
+  ],
+  "bin": "cli.mjs"
 }
