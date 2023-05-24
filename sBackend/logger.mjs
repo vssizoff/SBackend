@@ -64,6 +64,8 @@ export default class Logger {
     }
 
     request(url, code, request, response) {
+        request = typeof request === "string" ? request.replaceAll("\n", "\\n") : request;
+        response = typeof response === "string" ? response.replaceAll("\n", "\\n") : response;
         let toLog = ['\n' + this.getPrefix("request"), `Handled request to`];
         let toLogColours = [...toLog, chalk.greenBright(url)];
         toLog.push(url);
@@ -73,26 +75,27 @@ export default class Logger {
         }
         if (request !== undefined) {
             toLog.push(". Request:", typeof request === "string" ? `"${request}"` : request);
-            toLogColours.push(". Request:", typeof request === "string" ? chalk.green(`"${request}"`) : request);
+            toLogColours.push(". Request:", typeof request === "string" ? chalk.cyan(`"${request}"`) : request);
         }
         if (response !== undefined) {
             toLog.push(". Response:", typeof response === "string" ? `"${response}"` : response);
-            toLogColours.push(". Response:", typeof response === "string" ? chalk.green(`"${response}"`) : response);
+            toLogColours.push(". Response:", typeof response === "string" ? chalk.cyan(`"${response}"`) : response);
         }
         this.logSeparately(toLogColours.map(elem => typeof elem === "string" ? chalk.green(elem) : elem), toLog);
     }
 
     requestError(url, request, stackTrace) {
+        request = typeof request === "string" ? request.replaceAll("\n", "\\n") : request;
         let toLog = ['\n' + this.getPrefix("request"), `Error during handling request to`];
         let toLogColours = [...toLog, chalk.greenBright(url)];
         toLog.push(url);
         if (request !== undefined) {
             toLog.push(". Request:", typeof request === "string" ? `"${request}"` : request);
             try {
-                toLogColours.push(`. Request:`, typeof request === "string" ? chalk.green(`"${request}"`) : request);
+                toLogColours.push(`. Request:`, typeof request === "string" ? chalk.cyan(`"${request}"`) : request);
             }
             catch (err) {
-                toLogColours.push(`. Request:`, typeof request === "string" ? chalk.green(`"${request}"`) : request);
+                toLogColours.push(`. Request:`, typeof request === "string" ? chalk.cyan(`"${request}"`) : request);
             }
         }
         toLog.push(`\n${stackTrace}`);

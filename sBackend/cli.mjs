@@ -1,12 +1,10 @@
+#!/usr/bin/env node
+
 import {spawn} from "child_process";
 import * as dotenv from "dotenv";
 import path from "path";
-import * as fs from "fs";
 
-console.log(process.argv);
 dotenv.config();
-
-fs.writeFileSync("./txt.txt", `cross-env PORT=${process.argv[3] || 8080} nodemon "${path.resolve(process.argv[2] || "main.js")}"`, {encoding: "utf-8"});
 
 const Process = spawn(`cross-env PORT=${process.argv[3] || 8080} nodemon "${path.resolve(process.argv[2] || "main.js")}"`, [], {
     stdio: 'inherit',

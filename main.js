@@ -2,11 +2,12 @@ import SBackend from "./sBackend/index.mjs";
 import test from "./test.js";
 import path from "path";
 import files from "./files.json" assert {type: "json"};
+import packageJSON from "./package.json" assert {type: "json"};
 
 let app = new SBackend({
     port: process.env.PORT || 8888,
-    name: "test",
-    version: "0.0.0",
+    name: packageJSON.name,
+    version: packageJSON.version,
     logPath: "./latest.log"
 });
 
