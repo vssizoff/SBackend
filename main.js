@@ -31,15 +31,6 @@ app.addFile("/postman", path.resolve("postman.html"));
 app.addFilesJson(files, p => path.resolve(p));
 
 app.use(function (request, response) {
-    // this.logger.message(response.headers);
-    // response.headers = {
-    //     test: true
-    // };
-    // return true;
-    // response.status(288);
-    // response.end({
-    //     body: request.body
-    // });
     console.log({
         request: request.body,
         params: request.params,
