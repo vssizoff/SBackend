@@ -24,24 +24,14 @@
 // };
 
 export let defaultConfig = {
-    port: 8080,
+    port: process.env.PORT || 8080,
     name: "app",
     version: "0.0.0",
     logPath: null,
     readlinePrompt: ">> ",
     handlerConfig: {
-        wrapper: "auto",
-        inputFormat: "object",
-        outputFormat: "object",
-        parseQuery: false,
-        stringQuery: false,
-        stringRouteParams: false,
-        stringHeaders: false,
-        logging: true,
-        logRequest: true,
-        logResponse: true,
-        ifErr: "Internal server error",
-        type: "post"
+        autoLog: true,
+        ifError: "Internal server error",
     },
     questionString: "> "
 };

@@ -1,4 +1,2 @@
-wrapper plugins
 sfsf
-addPath
 SFormData

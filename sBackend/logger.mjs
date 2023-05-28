@@ -1,6 +1,5 @@
 import {File} from "./files.mjs";
 import chalk from "chalk";
-import * as flatted from "flatted";
 
 export function getDate() {
     let date = new Date();
@@ -8,7 +7,8 @@ export function getDate() {
 }
 
 export default class Logger {
-    constructor(path) {
+    constructor(path, log) {
+        this.log = log;
         if (path === null) {
             this.file = {write(){}, read(){return ""}, append(){}};
         }
@@ -23,7 +23,7 @@ export default class Logger {
     }
 
     logSeparately(consoleData, fileData) {
-        console.log(...consoleData);
+        this.log(...consoleData);
         this.file.append(...fileData);
     }
 
@@ -35,7 +35,8 @@ export default class Logger {
         let prefix = this.getPrefix(tag);
         this.logSeparately(['\n' + func(prefix), ...data.map((elem) => {
             return typeof elem !== "string" ? elem : func(elem);
-        })], [(this.file.read() === "" ? "" : "\n") + prefix, ...data.map(flatted.stringify)]);
+        })], [(this.file.read() === "" ? "" : "\n") + prefix, ...data.map(elem => typeof elem === "object" ?
+            JSON.safeStringify(elem, undefined, 2) : elem)]);
     }
 
     message(...data) {

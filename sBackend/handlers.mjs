@@ -1,12 +1,24 @@
+export function autoNext(request, response, next, route, ans) {
+    if (ans) {next();}
+}
+
+export function afterRoute(request, response, next, route) {
+    if (route !== undefined) {
+        request.afterRoute = request.url.substring(route.length - 1);
+    }
+}
+
 export function wrapper(app, func, route) {
     func = func.bind(app);
     return function (request, response, next) {
-        if (route !== undefined) {
-            request.afterRoute = request.url.substring(route.length - 1);
-        }
+        let beforeHandlers = app.wrapperBeforeHandlers, afterHandlers = app.wrapperAfterHandlers;
         try {
+            beforeHandlers.forEach(func => func.bind(app)(request, response, next, route));
             let ans = func(request, response, next);
-            if (ans) next();
+            afterHandlers.forEach(func => {
+                let tmp = func.bind(app)(request, response, next, route, ans);
+                if (tmp !== undefined) ans = tmp;
+            });
         }
         catch (error) {
             app.logger.requestError(request.url, request.body, error.stack);

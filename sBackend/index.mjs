@@ -1,18 +1,18 @@
 import * as fs from "fs";
 import express from "express";
-import Logger from "./logger.mjs"
+import Logger from "./logger.mjs";
+import * as utils from "./utils.mjs";
 import * as readline from "node:readline";
 import {defaultConfig} from "./types.mjs";
 import fileUpload from "express-fileupload";
 import {endJSONMiddleware} from "./endJSON.mjs";
 import {sendErrorMiddleware} from "./sendError.mjs";
-import {handlersFormat, wrapper} from "./handlers.mjs";
-import {stdin as input, stdout as output} from 'process';
 import {sendHandlersMiddleware} from "./sendHandlers.mjs";
+import {requestLoggerMiddleware} from "./requestLogger.mjs";
 import {responseHeadersMiddleware} from "./responseHeaders.mjs";
 import {requestBodyParserMiddleware} from "./requestBodyParser.mjs";
 import {statusChangeHandlersMiddleware} from "./statusChangeHandlers.mjs";
-import {autoLogEnable, requestLoggerMiddleware} from "./requestLogger.mjs";
+import {afterRoute, autoNext, handlersFormat, wrapper} from "./handlers.mjs";
 import {headersParserMiddleware, queryParserMiddleware, routeParamsParserMiddleware} from "./parsers.mjs";
 
 let log = console.log;
@@ -26,7 +26,7 @@ export default class SBackend {
     keyboardCommands = [];
     routes = [];
     rlStopped = false;
-    readline = readline.createInterface({input, output});
+    readline = readline.createInterface({input: process.stdin, output: process.stdout});
     server = undefined;
     onStart = [];
     onPause = [];
@@ -34,23 +34,32 @@ export default class SBackend {
     onStop = [];
     onRestart = [];
     defaultKeyboardHandler = () => undefined;
+    wrapperBeforeHandlers = [];
+    wrapperAfterHandlers = [];
 
     constructor(config = defaultConfig) {
         this.setConfig(config);
+        this.use((request) => {
+            request.url = decodeURIComponent(request.url);
+            return true;
+        });
         this.use(endJSONMiddleware);
         this.use(statusChangeHandlersMiddleware);
         this.use(sendHandlersMiddleware)
         this.use(fileUpload({}));
         this.use(requestBodyParserMiddleware);
-        this.use(autoLogEnable);
         this.use(requestLoggerMiddleware);
-        this.use(sendErrorMiddleware(this.config.handlerConfig.ifErr));
+        this.use(sendErrorMiddleware);
         this.use(queryParserMiddleware);
         this.use(headersParserMiddleware);
         this.use(routeParamsParserMiddleware);
         this.use(responseHeadersMiddleware);
-        this.use((request, response) => response.set({"X-Powered-By": "SBackend"}));
-        this.initRl();
+        this.use((request, response) => {
+            response.set({"X-Powered-By": "SBackend"});
+            return true;
+        });
+        this.on("wrapperBeforeHandler", afterRoute);
+        this.on("wrapperAfterHandler", autoNext);
     }
 
     on(event, callback) {
@@ -70,12 +79,20 @@ export default class SBackend {
             case "restart":
                 this.onRestart.push(callback);
                 break;
+            case "wrapperbeforehandler":
+                this.wrapperBeforeHandlers.push(callback);
+                break;
+            case "wrapperafterhandler":
+                this.wrapperAfterHandlers.push(callback);
+                break;
         }
     }
 
     setConfig(config = defaultConfig) {
         this.config = {...defaultConfig, ...config};
-        this.logger = new Logger(this.config.logPath);
+        this.initRl();
+        this.logger = new Logger(this.config.logPath, console.log);
+        console.log = this.logger.message.bind(this.logger);
     }
 
     initRl() {

@@ -1,6 +1,6 @@
 {
   "name": "SBackend test app",
-  "version": "1.0s5",
+  "version": "1.0s6",
   "description": "",
   "main": "main.js",
   "scripts": {
@@ -14,7 +14,6 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-fileupload": "^1.4.0",
-    "flatted": "^3.2.7",
     "nodemon": "^2.0.22",
     "typescript": "^5.0.4",
     "xml-js": "^1.6.11"

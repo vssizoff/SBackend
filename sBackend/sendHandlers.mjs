@@ -14,7 +14,7 @@ export function sendHandlersMiddleware(request, response, next) {
     };
     response.onStatusChange(newStatus => status = newStatus);
     let end = response.end.bind(response), json = response.json, jsonp = response.jsonp.bind(response),
-        send = response.send, sendFile = response.sendFile.bind(response);
+        send = response.send, sendFile = response.sendFile;
     response.send = body => {
         handler0(body, false);
         let func = response.send, func0 = response.end;
@@ -44,12 +44,15 @@ export function sendHandlersMiddleware(request, response, next) {
     //     handler(body);
     //     return ans;
     // };
-    // response.sendFile = (body, options, fn) => {
-    //     handler0(body);
-    //     return sendFile(body, options, error => {
-    //         fn(error);
-    //         handler(body);
-    //     });
-    // };
+    response.sendFile = (body, options, fn) => {
+        handler0(body);
+        let func = response.end;
+        response.end = end;
+        return sendFile.bind(response)(body, options, error => {
+            if (fn !== undefined && typeof fn === "function") fn(error);
+            handler(body, false);
+            response.end = func;
+        });
+    };
     next();
 }

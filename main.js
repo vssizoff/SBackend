@@ -5,7 +5,6 @@ import files from "./files.json" assert {type: "json"};
 import packageJSON from "./package.json" assert {type: "json"};
 
 let app = new SBackend({
-    port: process.env.PORT || 8888,
     name: packageJSON.name,
     version: packageJSON.version,
     logPath: "./latest.log"
@@ -41,12 +40,13 @@ app.use(function (request, response) {
     // response.end({
     //     body: request.body
     // });
-    this.logger.message({
+    console.log({
         request: request.body,
         params: request.params,
         afterRoute: request.afterRoute,
         headers: request.headers,
-        query: request.query
+        query: request.query,
+        url: request.url
     });
     return true;
 });
