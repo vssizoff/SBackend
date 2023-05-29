@@ -146,7 +146,7 @@ export default class SBackend {
         if (type === "use") {
             return this.use(route, callback);
         }
-        if (route.substring(0, 1) !== '/'){
+        if (route[0] !== '/'){
             route = '/' + route;
         }
         this.handlers.push({route, type, callback});
@@ -198,7 +198,7 @@ export default class SBackend {
 
     addFolder(route, path, logging = true) {
         if (route !== null && typeof route === "string" && route.length > 0 && path !== null && typeof path === "string" && path.length > 0){
-            if (route.substring(0, 1) !== '/'){
+            if (route[0] !== '/'){
                 route = '/' + route;
             }
             this.get(route !== '/' ? route += "/*" : "/*", (request, response) => {
@@ -209,7 +209,7 @@ export default class SBackend {
     }
 
     addFile(route, path, logging = true) {
-        if (route.substring(0, 1) !== '/'){
+        if (route[0] !== '/'){
             route = '/' + route;
         }
         this.get(route, (request, response) => {
@@ -228,14 +228,23 @@ export default class SBackend {
         });
     }
 
-    use(routeOrCallback, callback) {
+    use(routeOrCallback, callback, routePush = true) {
         let route = routeOrCallback;
         if (callback === undefined) {
             callback = routeOrCallback;
             route = undefined;
         }
+        if (route !== undefined && route[0] !== '/') {
+            route = '/' + route;
+        }
         callback = wrapper(this, callback, route);
         this.expressUse.push(route === undefined ? [callback] : [route, callback]);
+        if (route !== undefined && routePush) {
+            this.routes.push({
+                route,
+                type: "use"
+            })
+        }
     }
 
     addKeyboardCommand(command, callback) {
