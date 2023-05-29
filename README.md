@@ -60,7 +60,7 @@ let app = new SBackend({
     logPath: "./latest.log"
 });
 
-app.logger.message("test");
+console.log("test");
 ```
 In console:
 ```
@@ -98,12 +98,17 @@ Server will log:
 ## Single handler
 ### POST
 ```javascript
-app.post("/post", (data, app, response, request, errorFunc) => {
-    app.logger.message(data);
-    return {
-        code: 200,
-        response: "ok"
-    };
+app.post("/post", (request, response) => {
+    console.log({
+        request: request.body,
+        url: request.url,
+        query: request.query,
+        params: request.params,
+        headers: request.headers,
+        afterRoute: request.afterRoute
+    });
+    response.status(200);
+    response.end("ok");
 });
 ```
 Server will log (after handling request):
@@ -117,9 +122,6 @@ Server will log (after handling request):
     "params": {},
     "headers": {
         "content-type": "text/plain",
-        "user-agent": "PostmanRuntime/7.31.3",
-        "accept": "*/*",
-        "postman-token": "efcfd80c-4e7b-4a3b-875a-2e05812bc351",
         "host": "localhost:8888",
         "accept-encoding": "gzip, deflate, br",
         "connection": "keep-alive",
@@ -132,12 +134,16 @@ Server will log (after handling request):
 ```
 ### GET
 ```javascript
-app.get("/get", (data, app, response, request, errorFunc) => {
-    app.logger.message(data);
-    return {
-        code: 200,
-        response: "ok"
-    };
+app.get("/get", (request, response) => {
+    console.log({
+        url: request.url,
+        query: request.query,
+        params: request.params,
+        headers: request.headers,
+        afterRoute: request.afterRoute
+    });
+    response.status(200);
+    response.end("ok");
 });
 ```
 Server will log (after handling request):
@@ -161,67 +167,6 @@ Server will log (after handling request):
 
 2023.3.30 15:36:47: request: Handled request to /get?test=test&test0=0&test1=true. Code: 200. Response: "ok"
 ```
-### FormData
-```javascript
-app.formData("/formdata", (data, app, response, request, errorFunc) => {
-    app.logger.message(data);
-    return {
-        code: 200,
-        response: "ok"
-    };
-});
-```
-Server will log (after handling request):
-```
---++== test v0.0.0; port: 8888 ==++--
-
-2023.3.30 15:45:23: info: {
-    "request": {
-        "test": "test",
-        "test0": 0,
-        "test1": true
-    },
-    "files": null,
-    "url": "/formdata?test=test&test0=0&test1=true",
-    "query": "test=test&test0=0&test1=true"
-    "params": {},
-    "headers": {
-        "user-agent": "PostmanRuntime/7.31.3",
-        "accept": "*/*",
-        "postman-token": "af46fdb6-cbe4-496b-bbcb-55d0c578287e",
-        "host": "localhost:8888",
-        "accept-encoding": "gzip, deflate, br",
-        "connection": "keep-alive",
-        "content-type": "multipart/form-data; boundary=--------------------------247694685990523438764693",
-        "content-length": 376
-    },
-    "afterRoute": "a?test=test&test0=0&test1=true"
-}
-
-2023.3.30 15:45:23: request: Handled request to /formdata?test=test&test0=0&test1=true. Code: 200. Request: {
-    "test": "test",
-    "test0": 0,
-    "test1": true
-}. Response: "ok"
-```
-### Raw POST
-No request body parsing, no logging, no error handling.
-```javascript
-app.rawPost("/post", (request, response, app) => {
-    response.status(200);
-    response.end("ok");
-});
-```
-Server will log only init message.
-### Raw GET
-No logging, no error handling.
-```javascript
-app.rawGet("/post", (request, response, app) => {
-    response.status(200);
-    response.end("ok");
-});
-```
-Server will log only init message.
 ### Other type
 ```javascript
 import SBackend from "sbackend";
@@ -233,7 +178,14 @@ let app = new SBackend({
     logPath: "./latest.log"
 });
 
-app.addHandler("/other", "put", (request, response, app) => {
+app.addHandler("/other", "put", (request, response) => {
+    console.log({
+        url: request.url,
+        query: request.query,
+        params: request.params,
+        headers: request.headers,
+        afterRoute: request.afterRoute
+    });
     response.status(200);
     response.end("ok");
 });
@@ -262,53 +214,35 @@ app.start();
 export default {
     post: {
         "/post": {
-            callback(data, app, response, request, errorFunc) {
+            callback(request, response) {
                 app.logger.message("POST");
-                app.logger.message(data);
-                return {
-                    code: 200,
-                    response: "ok"
-                }
-            }
-        },
-        "/formdata": {
-            callback(data, app, response, request, errorFunc) {
-                app.logger.message("FormData");
-                app.logger.message(data);
-                return {
-                    code: 200,
-                    response: "ok"
-                }
-            },
-            wrapper: "post.formData"
-        },
-        "/post/raw": {
-            callback(request, response, app) {
-                app.logger.message("raw POST");
+                console.log({
+                    request: request.body,
+                    url: request.url,
+                    query: request.query,
+                    params: request.params,
+                    headers: request.headers,
+                    afterRoute: request.afterRoute
+                });
                 response.status(200);
                 response.end("ok");
-            },
-            wrapper: "raw"
+            }
         }
     },
     get: {
         "/get": {
-            callback(data, app, response, request, errorFunc) {
+            callback(request, response) {
                 app.logger.message("GET");
-                app.logger.message(data);
-                return {
-                    code: 200,
-                    response: "ok"
-                }
-            }
-        },
-        "/get/raw": {
-            callback(request, response, app) {
-                app.logger.message("raw GET");
+                console.log({
+                    url: request.url,
+                    query: request.query,
+                    params: request.params,
+                    headers: request.headers,
+                    afterRoute: request.afterRoute
+                });
                 response.status(200);
                 response.end("ok");
-            },
-            wrapper: "raw"
+            }
         }
     }
 }
@@ -347,39 +281,6 @@ Server will log (after handling requests):
     "test1": true
 }. Response: "ok"
 
-2023.3.30 17:45:2: info: FormData
-
-2023.3.30 17:45:2: info: {
-    "request": {
-        "test": "test",
-        "test0": 0,
-        "test1": true
-    },
-    "files": null,
-    "url": "/formdata?test=test&test0=0&test1=true",
-    "query": "test=test&test0=0&test1=true"
-    "params": {},
-    "headers": {
-        "user-agent": "PostmanRuntime/7.31.3",
-        "accept": "*/*",
-        "postman-token": "a6279535-578b-4300-92f2-8b4ba2d0fd9f",
-        "host": "localhost:8888",
-        "accept-encoding": "gzip, deflate, br",
-        "connection": "keep-alive",
-        "content-type": "multipart/form-data; boundary=--------------------------763107324175412377365942",
-        "content-length": 376
-    },
-    "afterRoute": "a?test=test&test0=0&test1=true"
-}
-
-2023.3.30 17:45:2: request: Handled request to /formdata?test=test&test0=0&test1=true. Code: 200. Request: {
-    "test": "test",
-    "test0": 0,
-    "test1": true
-}. Response: "ok"
-
-2023.3.30 17:45:8: info: raw POST
-
 2023.3.30 17:45:10: info: GET
 
 2023.3.30 17:45:10: info: {
@@ -408,25 +309,13 @@ Server will log (after handling requests):
 # Sending files
 ## One file
 ```javascript
-import SBackend from "sbackend";
-import path from "path";
-
-let app = new SBackend({
-    port: 8888,
-    name: "test",
-    version: "0.0.0",
-    logPath: "./latest.log"
-});
-
-app.addFile("/some_file", path.resolve("./main.js"));
-
-app.start();
+app.addFile("/file", path.resolve("./main.js"));
 ```
 Server will log (after handling request):
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
-2023.3.30 17:58:27: request: Handled request to /some_file
+2023.3.30 17:58:27: request: Handled request to /file
 ```
 <!-- Response:
 ```javascript
@@ -446,25 +335,15 @@ app.start();
 ``` -->
 ## One folder
 ```javascript
-import SBackend from "sbackend";
-import path from "path";
-
-let app = new SBackend({
-    port: 8888,
-    name: "test",
-    version: "0.0.0",
-    logPath: "./latest.log"
-});
-
 app.addFolder("/folder", path.resolve("."));
-
-app.start();
 ```
 Server will log (after handling request):
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
 2023.3.30 18:5:59: request: Handled request to /folder/main.js
+
+2023.3.30 18:5:59: request: Handled request to /folder/handlers.js
 ```
 <!-- #### Response:
 ```javascript
@@ -482,34 +361,36 @@ app.addFolder("/folder", path.resolve("."));
 
 app.start();
 ``` -->
+## One folder or file
+```javascript
+app.addPath("/file", path.resolve("./main.js"));
+app.addPath("/folder", path.resolve("."));
+```
 ## Multiple
 ```javascript
-import SBackend from "sbackend";
-import path from "path";
-
-let app = new SBackend({
-    port: 8888,
-    name: "test",
-    version: "0.0.0",
-    logPath: "./latest.log"
-});
-
 app.addHandlers({
-    "/some_file": {
-        path: path.resolve("./main.js")
-    },
-    "/folder": {
-        dir: path.resolve(".")
+    paths: {
+        "/file": path.resolve("./main.js"),
+        "/folder": path.resolve(".")
     }
-})
-
-app.start();
+});
+```
+or
+```javascript
+app.addHandlers({
+    files: {
+        "/file": path.resolve("./main.js")
+    },
+    folders: {
+        "/folder": path.resolve(".")
+    }
+});
 ```
 Server will log (after handling request):
 ```
 --++== test v0.0.0; port: 8888 ==++--
 
-2023.3.30 18:11:3: request: Handled request to /some_file
+2023.3.30 18:11:3: request: Handled request to /file
 
 2023.3.30 18:11:23: request: Handled request to /folder/main.js
 ```
@@ -559,7 +440,8 @@ app.start();
 {
   "/log": "./latest.log",
   "/srequest": "./sRequest.js",
-  "/functions": "./sBackend/files.mjs"
+  "/functions": "./sBackend/files.mjs",
+  "/folder": "."
 }
 ```
 # Keyboard
