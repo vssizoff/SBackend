@@ -143,6 +143,9 @@ export default class SBackend {
         if (type === "paths") {
             return this.addPath(route, callback);
         }
+        if (type === "use") {
+            return this.use(route, callback);
+        }
         if (route.substring(0, 1) !== '/'){
             route = '/' + route;
         }
