@@ -112,7 +112,7 @@ app.post("/post", (request, response) => {
 });
 ```
 Server will log (after handling request):
-```json
+```
 --++== test v0.0.0; port: 8888 ==++--
 
 2023.3.30 15:32:58: info: {
@@ -147,7 +147,7 @@ app.get("/get", (request, response) => {
 });
 ```
 Server will log (after handling request):
-```json
+```
 --++== test v0.0.0; port: 8888 ==++--
 
 2023.3.30 15:36:47: info: {
@@ -244,7 +244,7 @@ export default {
 }
 ```
 Server will log (after handling requests):
-```json
+```
 --++== test v0.0.0; port: 8888 ==++--
 
 2023.3.30 17:45:0: info: POST
@@ -556,7 +556,7 @@ app.start(() => {
 });
 ```
 #### Server will log:
-```json
+```
 --++== test v0.0.0; port: 8888 ==++--
 
 2023.5.30 9:43:31: info: [
