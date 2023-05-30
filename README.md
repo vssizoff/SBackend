@@ -476,11 +476,16 @@ app.addKeyboardCommand("stop", () => app.stop());
 ```
 # Events
 ```javascript
-app.on("stop", () => {app.logger.message("Server stopped")});
+app.on("start", () => {app.logger.message("Server started")});
 app.on("pause", () => {app.logger.message("Server paused")});
 app.on("resume", () => {app.logger.message("Server resumed")});
+app.on("stop", () => {app.logger.message("Server stopped")});
 app.on("restart", () => {app.logger.message("Server restarted")});
 ```
+
+[//]: # (app.on&#40;"wrapperBeforeHandler", &#40;&#41; => {app.logger.message&#40;"WrapperBeforeHandler"&#41;}&#41;;)
+
+[//]: # (app.on&#40;"wrapperAfterHandler", &#40;&#41; => {app.logger.message&#40;"WrapperAfterHandler"&#41;}&#41;;)
 # Files (utf-8)
 ## Read file
 ```javascript
