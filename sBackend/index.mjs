@@ -28,11 +28,11 @@ export default class SBackend {
     rlStopped = false;
     readline = readline.createInterface({input: process.stdin, output: process.stdout});
     server = undefined;
-    onStart = [];
-    onPause = [];
-    onResume = [];
-    onStop = [];
-    onRestart = [];
+    onStartCallbacks = [];
+    onPauseCallbacks = [];
+    onResumeCallbacks = [];
+    onStopCallbacks = [];
+    onRestartCallbacks = [];
     defaultKeyboardHandler = () => undefined;
     wrapperBeforeHandlers = [];
     wrapperAfterHandlers = [];
@@ -65,19 +65,19 @@ export default class SBackend {
     on(event, callback) {
         switch (event.toLowerCase()) {
             case "start":
-                this.onStart.push(callback);
+                this.onStartCallbacks.push(callback);
                 break;
             case "pause":
-                this.onPause.push(callback);
+                this.onPauseCallbacks.push(callback);
                 break;
             case "resume":
-                this.onResume.push(callback);
+                this.onResumeCallbacks.push(callback);
                 break;
             case "stop":
-                this.onStop.push(callback);
+                this.onStopCallbacks.push(callback);
                 break;
             case "restart":
-                this.onRestart.push(callback);
+                this.onRestartCallbacks.push(callback);
                 break;
             case "wrapperbeforehandler":
                 this.wrapperBeforeHandlers.push(callback);
@@ -86,6 +86,34 @@ export default class SBackend {
                 this.wrapperAfterHandlers.push(callback);
                 break;
         }
+    }
+
+    onStart(callback) {
+        this.on("start", callback);
+    }
+
+    onPause(callback) {
+        this.on("pause", callback);
+    }
+
+    onResume(callback) {
+        this.on("resume", callback);
+    }
+
+    onStop(callback) {
+        this.on("stop", callback);
+    }
+
+    onRestart(callback) {
+        this.on("restart", callback);
+    }
+
+    onWrapperBeforeHandler(callback) {
+        this.on("wrapperBeforeHandler", callback);
+    }
+
+    onWrapperAfterHandler(callback) {
+        this.on("wrapperAfterHandler", callback);
     }
 
     setConfig(config = defaultConfig) {
@@ -278,7 +306,7 @@ export default class SBackend {
             try {
                 this.logger.initMessage(this.config.name, this.config.version, this.config.port)
                 if (callback !== undefined && typeof callback === "function") callback(this);
-                if (runEvents) this.onStart.forEach(fn => {fn(this)});
+                if (runEvents) this.onStartCallbacks.forEach(fn => {fn(this)});
                 this.readline.prompt();
                 process.on('SIGTERM', () => this.stop());
                 process.on('SIGINT', () => this.stop());
@@ -298,7 +326,7 @@ export default class SBackend {
         if (this.server.closeAllConnections) this.server.closeAllConnections();
         this.server.close(() => {
             if (callback !== undefined && typeof callback === "function") callback(this);
-            if (runEvents) this.onPause.forEach(fn => {fn(this)});
+            if (runEvents) this.onPauseCallbacks.forEach(fn => {fn(this)});
         });
     }
 
@@ -311,19 +339,19 @@ export default class SBackend {
         }
         if (rerunCallback) this.start(() => {
             if (callback !== undefined && typeof callback === "function") callback(this);
-            if (runEvents) this.onResume.forEach(fn => {fn(this)});
-            this.onStart.forEach(fn => {fn(this)});
+            if (runEvents) this.onResumeCallbacks.forEach(fn => {fn(this)});
+            this.onStartCallbacks.forEach(fn => {fn(this)});
         }, false);
         else this.start(() => {
             if (callback !== undefined && typeof callback === "function") callback(this);
-            if (runEvents) this.onResume.forEach(fn => {fn(this)});
+            if (runEvents) this.onResumeCallbacks.forEach(fn => {fn(this)});
         }, false);
     }
 
     stop(code = 0, callback = undefined, runEvents = true) {
         this.pause(true, () => {
             if (callback !== undefined && typeof callback === "function") callback(this);
-            if (runEvents) this.onStop.forEach(fn => {fn(this)});
+            if (runEvents) this.onStopCallbacks.forEach(fn => {fn(this)});
             process.exit(code);
         }, false);
     }
@@ -332,7 +360,7 @@ export default class SBackend {
         this.pause(true, () => {return undefined}, true);
         this.resume(rerunCallback, () => {
             if (callback !== undefined && typeof callback === "function") callback(this);
-            if (runEvents) this.onRestart.forEach(fn => {fn(this)});
+            if (runEvents) this.onRestartCallbacks.forEach(fn => {fn(this)});
         }, false);
     }
 }

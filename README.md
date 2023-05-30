@@ -112,7 +112,7 @@ app.post("/post", (request, response) => {
 });
 ```
 Server will log (after handling request):
-```
+```json
 --++== test v0.0.0; port: 8888 ==++--
 
 2023.3.30 15:32:58: info: {
@@ -147,7 +147,7 @@ app.get("/get", (request, response) => {
 });
 ```
 Server will log (after handling request):
-```
+```json
 --++== test v0.0.0; port: 8888 ==++--
 
 2023.3.30 15:36:47: info: {
@@ -213,42 +213,38 @@ app.start();
 ```javascript
 export default {
     post: {
-        "/post": {
-            callback(request, response) {
-                app.logger.message("POST");
-                console.log({
-                    request: request.body,
-                    url: request.url,
-                    query: request.query,
-                    params: request.params,
-                    headers: request.headers,
-                    afterRoute: request.afterRoute
-                });
-                response.status(200);
-                response.end("ok");
-            }
+        "/post"(request, response) {
+            this.logger.message("POST");
+            console.log({
+                request: request.body,
+                url: request.url,
+                query: request.query,
+                params: request.params,
+                headers: request.headers,
+                afterRoute: request.afterRoute
+            });
+            response.status(200);
+            response.end("ok");
         }
     },
     get: {
-        "/get": {
-            callback(request, response) {
-                app.logger.message("GET");
-                console.log({
-                    url: request.url,
-                    query: request.query,
-                    params: request.params,
-                    headers: request.headers,
-                    afterRoute: request.afterRoute
-                });
-                response.status(200);
-                response.end("ok");
-            }
+        "/get"(request, response) {
+            this.logger.message("GET");
+            console.log({
+                url: request.url,
+                query: request.query,
+                params: request.params,
+                headers: request.headers,
+                afterRoute: request.afterRoute
+            });
+            response.status(200);
+            response.end("ok");
         }
     }
 }
 ```
 Server will log (after handling requests):
-```
+```json
 --++== test v0.0.0; port: 8888 ==++--
 
 2023.3.30 17:45:0: info: POST
@@ -549,56 +545,31 @@ let app = new SBackend({
 app.addHandlers(handlers);
 
 app.addHandlers({
-    "/some_file": {
-        path: path.resolve("./main.js")
-    },
-    "/folder": {
-        dir: path.resolve(".")
+    paths: {
+        "/file": path.resolve("./main.js"),
+        "/folder": path.resolve(".")
     }
-})
+});
 
 app.start(() => {
     app.logger.message(app.routes);
 });
 ```
 #### Server will log:
-```
+```json
 --++== test v0.0.0; port: 8888 ==++--
 
-2023.3.30 18:27:13: info: [
-    {
-        "route": "/post",
-        "type": "post",
-        "wrapper": "post"
-    },
-    {
-        "route": "/formdata",
-        "type": "post",
-        "wrapper": "post.formData"
-    },
-    {
-        "route": "/post/raw",
-        "type": "post",
-        "wrapper": "raw"
-    },
-    {
-        "route": "/get",
-        "type": "get",
-        "wrapper": "get"
-    },
-    {
-        "route": "/get/raw",
-        "type": "get",
-        "wrapper": "raw"
-    },
-    {
-        "route": "/some_file",
-        "path": "S:\Programming\Jet_Brains\Javascript\SBackend\main.js"
-    },
-    {
-        "route": "/folder/:file/:file/*",
-        "dir": "S:\Programming\Jet_Brains\Javascript\SBackend"
-    }
+2023.5.30 9:43:31: info: [
+  { route: '/post', type: 'post' },
+  { route: '/get', type: 'get' },
+  {
+    route: '/file',
+    path: '/media/sizoff/sizoff/Programming/Jet_Brains/Javascript/SBackend/main.js'
+  },
+  {
+    route: '/folder/*',
+    dir: '/media/sizoff/sizoff/Programming/Jet_Brains/Javascript/SBackend'
+  }
 ]
 ```
 ## Setting config
