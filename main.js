@@ -42,6 +42,7 @@ app.use(function (request, response) {
     return true;
 });
 
-app.start(() => {
+app.startAsync().then(server => {
     app.logger.message(app.routes);
+    console.log(server);
 });

@@ -256,7 +256,7 @@ export default class SBackend {
         });
     }
 
-    use(routeOrCallback, callback, routePush = true) {
+    use(routeOrCallback, callback = undefined, routePush = true) {
         let route = routeOrCallback;
         if (callback === undefined) {
             callback = routeOrCallback;
@@ -305,7 +305,7 @@ export default class SBackend {
             };
             try {
                 this.logger.initMessage(this.config.name, this.config.version, this.config.port)
-                if (callback !== undefined && typeof callback === "function") callback(this);
+                if (callback !== undefined && typeof callback === "function") callback(this.server);
                 if (runEvents) this.onStartCallbacks.forEach(fn => {fn(this)});
                 this.readline.prompt();
                 process.on('SIGTERM', () => this.stop());
@@ -316,6 +316,12 @@ export default class SBackend {
             }
         });
         return this.server;
+    }
+
+    async startAsync(runEvents = true) {
+        return new Promise((resolve) => {
+            this.start(resolve, runEvents);
+        });
     }
 
     pause(stopRl = false, callback = undefined, runEvents = true) {

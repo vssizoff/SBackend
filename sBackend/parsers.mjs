@@ -39,22 +39,21 @@ export function parseObjectTypes(object) {
 
 export function queryParserMiddleware(request, response, next) {
     request.parsedQuery = parseObjectTypes(URL.parse(request.url, true).query);
-    request.rawQuery = parseObjectTypes(URL.parse(request.url, false).query);
+    request.stringQuery = parseObjectTypes(URL.parse(request.url, false).query);
     request.query = request.parsedQuery;
     next();
 }
 
 export function headersParserMiddleware(request, response, next) {
-    request.rawHttpHeaders = request.rawHeaders;
-    request.rawHeaders = JSON.parse(JSON.stringify(request.headers));
+    request.stringHeaders = JSON.parse(JSON.stringify(request.headers));
     request.parsedHeaders = parseObjectTypes(request.headers);
     request.headers = request.parsedHeaders;
     next();
 }
 
 export function routeParamsParserMiddleware(request, response, next) {
-    request.rawParams = JSON.parse(JSON.stringify(request.params));
-    request.parsedParams = parseObjectTypes(request.rawParams);
+    request.stringParams = JSON.parse(JSON.stringify(request.params));
+    request.parsedParams = parseObjectTypes(request.params);
     request.params = request.parsedParams;
     next();
 }

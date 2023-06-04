@@ -26,6 +26,8 @@ import SBackend from "sbackend";
 let app = new SBackend();
 
 app.start();
+// or
+app.startAsync();
 ```
 cjs
 ```javascript
@@ -34,6 +36,8 @@ const SBackend = require("sbackend")
 let app = new SBackend();
 
 app.start();
+// or
+app.startAsync();
 ```
 Server will log:
 ```
@@ -84,9 +88,14 @@ app.logger.message("test");
 > This message will be logged before *"--++== test v0.0.0; port: 8888 ==++--"*.  
 > How can we handle server starting? Using start callback.
 ```javascript
-app.start(() => {
+let server = app.start(() => {
     app.logger.message("test");
 });
+// or
+app.startAsync().then(server => {
+    app.logger.message("test");
+});
+// server is http.Server
 ```
 Server will log:
 ```
@@ -482,40 +491,20 @@ app.on("resume", () => {app.logger.message("Server resumed")});
 app.on("stop", () => {app.logger.message("Server stopped")});
 app.on("restart", () => {app.logger.message("Server restarted")});
 ```
-
+or
+```javascript
+app.onStart(() => {app.logger.message("Server started")});
+app.onPause(() => {app.logger.message("Server paused")});
+app.onResume(() => {app.logger.message("Server resumed")});
+app.onStop(() => {app.logger.message("Server stopped")});
+app.onRestart(() => {app.logger.message("Server restarted")});
+```
 [//]: # (app.on&#40;"wrapperBeforeHandler", &#40;&#41; => {app.logger.message&#40;"WrapperBeforeHandler"&#41;}&#41;;)
 
 [//]: # (app.on&#40;"wrapperAfterHandler", &#40;&#41; => {app.logger.message&#40;"WrapperAfterHandler"&#41;}&#41;;)
-# Files (utf-8)
-## Read file
+# Files
 ```javascript
-import * as files from "sbackend/files.mjs";
-
-console.log(files.read("test.txt"));
-console.log(files.readObject("test.json"));
-```
-## Write file
-```javascript
-import * as files from "sbackend/files.mjs";
-
-files.write("test.txt", "SBackend test file");
-files.writeObject("test.json", {
-    test: "test",
-    test0: 0,
-    test1: true
-});
-```
-## Append to file
-```javascript
-import * as files from "sbackend/files.mjs";
-
-files.write("test.txt", "SBackend");
-files.append("test.txt", " test file");
-console.log(files.read("test.txt")) // SBackend test file
-```
-## File class
-```javascript
-import * as files from "sbackend/files.mjs";
+import * as files from "sbackend/utils.mjs";
 
 let file = new files.File("test.txt");
 
@@ -532,6 +521,20 @@ file.writeObject({
     logPath: "./latest.log"
 });
 console.log(file.read()) // {"test": "test", "test0": 0, "test1": true}
+```
+## Options
+```javascript
+let file = new files.File("test.txt", "utf-8");
+// or
+let file = new files.File("test.txt", {
+    encoding: "utf-8"
+});
+```
+### Example
+```javascript
+let file = new files.File("test.txt", encoding);
+// or
+let file = new files.File("test.txt", fsOptions);
 ```
 # Other
 ## Logging routes

@@ -1,4 +1,4 @@
-import {File} from "./files.mjs";
+import {File} from "./utils.mjs";
 import chalk from "chalk";
 
 export function getDate() {
