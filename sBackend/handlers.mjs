@@ -10,11 +10,12 @@ export function afterRoute(request, response, next, route) {
 
 export function wrapper(app, func, route) {
     func = func.bind(app);
-    return function (request, response, next) {
+    return async function (request, response, next) {
         let beforeHandlers = app.wrapperBeforeHandlers, afterHandlers = app.wrapperAfterHandlers;
         try {
             beforeHandlers.forEach(func => func.bind(app)(request, response, next, route));
             let ans = func(request, response, next);
+            if (ans instanceof Promise) ans = await ans;
             afterHandlers.forEach(func => {
                 let tmp = func.bind(app)(request, response, next, route, ans);
                 if (tmp !== undefined) ans = tmp;

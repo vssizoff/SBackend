@@ -24,5 +24,6 @@
     "backend",
     "headers",
     "express"
-  ]
+  ],
+  "types": "./index.d.ts"
 }

@@ -1,7 +1,7 @@
 export function endJSONMiddleware(request, response, next) {
     let end = response.end.bind(response);
     response.end = (body, encoding) => {
-        if (typeof body === "object" && !(body instanceof Buffer)) {
+        if (typeof body === "object" && !(body instanceof Buffer || body instanceof ArrayBuffer)) {
             body = JSON.safeStringify(body);
             response.set({
                 "content-type": "application/json"

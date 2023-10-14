@@ -39,6 +39,37 @@ export default {
                 test: undefined
             };
             response.end(request);
+        },
+        form_data(request, response) {
+            let formData = new FormData;
+            formData.set("url", request.url);
+            formData.set("body", JSON.stringify(request.body));
+            formData.set("headers", JSON.stringify(request.headers));
+            formData.set("query", JSON.stringify(request.query));
+            formData.set("afterRoute", request.afterRoute);
+            response.end(formData);
+        }
+    },
+    use: {
+        "/test"(request, response) {
+            response.end({
+                url: request.url,
+                body: request.body,
+                headers: request.headers,
+                query: request.query,
+                afterRoute: request.afterRoute,
+                params: request.params
+            });
+        }
+    },
+    ws: {
+        async "/ws"(request, response) {
+            let connection = await response.accept();
+            connection.on("message", (data, isBinary, rawData) => {
+                console.log(rawData);
+                connection.send(data);
+                throw new Error("test");
+            });
         }
     }
 }

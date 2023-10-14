@@ -1,11 +1,10 @@
 import * as fs from "fs";
-import express from "express";
 import Logger from "./logger.mjs";
-import * as utils from "./utils.mjs";
 import * as readline from "node:readline";
 import {defaultConfig} from "./types.mjs";
 import fileUpload from "express-fileupload";
 import {endJSONMiddleware} from "./endJSON.mjs";
+import {WebSocketExpress} from 'websocket-express';
 import {sendErrorMiddleware} from "./sendError.mjs";
 import {sendHandlersMiddleware} from "./sendHandlers.mjs";
 import {requestLoggerMiddleware} from "./requestLogger.mjs";
@@ -14,13 +13,14 @@ import {requestBodyParserMiddleware} from "./requestBodyParser.mjs";
 import {statusChangeHandlersMiddleware} from "./statusChangeHandlers.mjs";
 import {afterRoute, autoNext, handlersFormat, wrapper} from "./handlers.mjs";
 import {headersParserMiddleware, queryParserMiddleware, routeParamsParserMiddleware} from "./parsers.mjs";
+import {wsMiddleware} from "./ws.mjs";
 
 let log = console.log;
 
 export default class SBackend {
     config = defaultConfig
     logger
-    express = express();
+    express = new WebSocketExpress();
     expressUse = [];
     handlers = [];
     keyboardCommands = [];
@@ -58,6 +58,7 @@ export default class SBackend {
             response.set({"X-Powered-By": "SBackend"});
             return true;
         });
+        this.use(wsMiddleware);
         this.on("wrapperBeforeHandler", afterRoute);
         this.on("wrapperAfterHandler", autoNext);
     }
@@ -118,6 +119,7 @@ export default class SBackend {
 
     setConfig(config = defaultConfig) {
         this.config = {...defaultConfig, ...config};
+        this.config.handlerConfig = {...defaultConfig.handlerConfig, ...config.handlerConfig}
         this.initRl();
         this.logger = new Logger(this.config.logPath, console.log);
         console.log = this.logger.message.bind(this.logger);
@@ -178,6 +180,7 @@ export default class SBackend {
             route = '/' + route;
         }
         this.handlers.push({route, type, callback});
+        this.express[type](route, wrapper(this, callback, route));
         if (routePush) {
             this.routes.push({route, type});
         }
@@ -224,6 +227,14 @@ export default class SBackend {
         this.addHandler(route, "patch", callback, routePush);
     }
 
+    ws(route, callback, routePush = true) {
+        this.addHandler(route, "ws", callback, routePush);
+    }
+
+    websocket(route, callback, routePush = true) {
+        this.addHandler(route, "ws", callback, routePush);
+    }
+
     addFolder(route, path, logging = true) {
         if (route !== null && typeof route === "string" && route.length > 0 && path !== null && typeof path === "string" && path.length > 0){
             if (route[0] !== '/'){
@@ -266,12 +277,10 @@ export default class SBackend {
             route = '/' + route;
         }
         callback = wrapper(this, callback, route);
+        this.express.use(...(route === undefined ? [callback] : [route, callback]));
         this.expressUse.push(route === undefined ? [callback] : [route, callback]);
         if (route !== undefined && routePush) {
-            this.routes.push({
-                route,
-                type: "use"
-            })
+            this.routes.push({route, type: "use"});
         }
     }
 
@@ -293,12 +302,12 @@ export default class SBackend {
     }
 
     start(callback = undefined, runEvents = true) {
-        this.expressUse.forEach(value => {
-            this.express.use(...value);
-        });
-        this.handlers.forEach(handler => {
-            this.express[handler.type](handler.route, wrapper(this, handler.callback, handler.route));
-        });
+        // this.expressUse.forEach(value => {
+        //     this.express.use(...value);
+        // });
+        // this.handlers.forEach(handler => {
+        //     this.express[handler.type](handler.route, wrapper(this, handler.callback, handler.route));
+        // });
         this.server = this.express.listen(this.config.port, () => {
             let errorFunc = err => {
                 return this.logger.error("Error in start" + `\n${err.stack}`);
@@ -337,12 +346,18 @@ export default class SBackend {
     }
 
     resume(rerunCallback = false, callback = undefined, runEvents = true) {
-        this.express = express();
+        this.express = new WebSocketExpress();
         this.express.use(fileUpload({}));
         if (this.rlStopped) {
             this.readline.resume();
             this.rlStopped = false;
         }
+        this.expressUse.forEach(value => {
+            this.express.use(...value);
+        });
+        this.handlers.forEach(handler => {
+            this.express[handler.type](handler.route, wrapper(this, handler.callback, handler.route));
+        });
         if (rerunCallback) this.start(() => {
             if (callback !== undefined && typeof callback === "function") callback(this);
             if (runEvents) this.onResumeCallbacks.forEach(fn => {fn(this)});

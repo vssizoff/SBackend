@@ -30,8 +30,20 @@ export let defaultConfig = {
     logPath: null,
     readlinePrompt: ">> ",
     handlerConfig: {
+        autoLogFull: false,
         autoLog: true,
-        ifError: "Internal server error",
+        autoLogWsFull: false,
+        autoLogWs: true,
+        onRequestHandlingErrorMessage: "Internal server error",
+        onRequestHandlingError(request, response, config, error) {
+            if (!config.onRequestHandlingErrorMessage) return;
+            response.end(config.onRequestHandlingErrorMessage);
+        },
+        onWsHandlingErrorMessage: "Internal server error",
+        onWsHandlingError(data, connection, config, error) {
+            if (!config.onWsHandlingErrorMessage) return;
+            connection.send(config.onWsHandlingErrorMessage);
+        }
     },
     questionString: "> "
 };

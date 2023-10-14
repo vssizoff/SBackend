@@ -2,13 +2,9 @@ import SBackend from "./sBackend/index.mjs";
 import test from "./test.js";
 import path from "path";
 import files from "./files.json" assert {type: "json"};
-import packageJSON from "./package.json" assert {type: "json"};
+import config from "./config.js";
 
-let app = new SBackend({
-    name: packageJSON.name,
-    version: packageJSON.version,
-    logPath: "./latest.log"
-});
+let app = new SBackend(config);
 
 app.on("stop", () => {app.logger.message("Server stopped")});
 app.on("pause", () => {app.logger.message("Server paused")});
@@ -25,24 +21,22 @@ app.addKeyboardCommand("timeout", () => {
     setTimeout(() => app.resume(), 10000);
 });
 
+// app.use(function (request, response) {
+//     console.log({
+//         request: request.body,
+//         params: request.params,
+//         afterRoute: request.afterRoute,
+//         headers: request.headers,
+//         query: request.query,
+//         url: request.url
+//     });
+//     return true;
+// });
 app.addHandlers(test);
 app.addFile("/postman", path.resolve("postman.html"));
 // app.addFolder("/", path.resolve("./sBackend"));
 app.addFilesJson(files, p => path.resolve(p));
 
-app.use(function (request, response) {
-    console.log({
-        request: request.body,
-        params: request.params,
-        afterRoute: request.afterRoute,
-        headers: request.headers,
-        query: request.query,
-        url: request.url
-    });
-    return true;
-});
-
 app.startAsync().then(server => {
     app.logger.message(app.routes);
-    console.log(server);
 });
