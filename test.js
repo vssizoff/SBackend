@@ -66,9 +66,9 @@ export default {
         async "/ws"(request, response) {
             let connection = await response.accept();
             connection.on("message", (data, isBinary, rawData) => {
-                console.log(rawData);
                 connection.send(data);
-                throw new Error("test");
+                if (data === "disconnect") connection.close();
+                if (data === "terminate") connection.terminate();
             });
         }
     }

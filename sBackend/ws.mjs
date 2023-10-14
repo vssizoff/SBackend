@@ -5,7 +5,8 @@ export function wsMiddleware(request, response, next) {
     let accept = response.accept.bind(response), reject = response.reject.bind(response);
     response.accept = async (...args) => {
         let connection = await accept(...args);
-        let on = connection.on.bind(connection), send = connection.send.bind(connection);
+        let on = connection.on.bind(connection), send = connection.send.bind(connection),
+            terminate = connection.terminate.bind(connection);
         connection.on = (...args) => {
             if (args.length <= 0 || args[0] !== "message") return on(...args);
             return on(...args.map(elem => (typeof elem === "function" ? ((rawData, isBinary) => {
@@ -45,6 +46,17 @@ export function wsMiddleware(request, response, next) {
                 body = JSON.safeStringify(body);
             }
             send(body);
+        }
+        connection.on("close", () => {
+            if (request.autoLogWsFull ?? request.autoLogWs ?? (this.config.handlerConfig.autoLogWsFull || this.config.handlerConfig.autoLogWs)) {
+                this.logger.wsClose(request.baseUrl);
+            }
+        });
+        connection.terminate = (...args) => {
+            if (request.autoLogWsFull ?? request.autoLogWs ?? (this.config.handlerConfig.autoLogWsFull || this.config.handlerConfig.autoLogWs)) {
+                this.logger.wsTerminate(request.baseUrl);
+            }
+            return terminate(...args);
         }
         if (request.autoLogWsFull ?? request.autoLogWs ?? (this.config.handlerConfig.autoLogWsFull || this.config.handlerConfig.autoLogWs)) {
             this.logger.wsConnected(request.baseUrl);

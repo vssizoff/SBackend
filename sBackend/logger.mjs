@@ -67,8 +67,9 @@ export default class Logger {
     requestFull(url, code, request, response) {
         request = typeof request === "string" ? request.replaceAll("\n", "\\n") : request;
         response = typeof response === "string" ? response.replaceAll("\n", "\\n") : response;
-        let toLog = ['\n' + this.getPrefix("request"), `Handled request to`];
+        let toLog = [this.getPrefix("request"), `Handled request to`];
         let toLogColours = [...toLog, chalk.cyan(url)];
+        toLog[0] = '\n' + toLog[0];
         toLog.push(url);
         if (code !== undefined) {
             toLog.push(". Code:", code);
@@ -86,8 +87,9 @@ export default class Logger {
     }
 
     request(url, code) {
-        let toLog = ['\n' + this.getPrefix("request"), `Handled request to`];
+        let toLog = [this.getPrefix("request"), `Handled request to`];
         let toLogColours = [...toLog, chalk.cyan(url)];
+        toLog[0] = '\n' + toLog[0];
         toLog.push(url);
         if (code !== undefined) {
             toLog.push(". Code:", code);
@@ -158,7 +160,7 @@ export default class Logger {
 
     wsError(url, data, stackTrace) {
         data = typeof data === "string" ? data.replaceAll("\n", "\\n") : data;
-        let toLog = [this.getPrefix("data"), `Error during handling websocket input to`];
+        let toLog = [this.getPrefix("error"), `Error during handling websocket input to`];
         let toLogColours = [...toLog, chalk.cyan(url)];
         toLog[0] = '\n' + toLog[0];
         toLog.push(url);
@@ -174,5 +176,19 @@ export default class Logger {
         toLog.push(`\n${stackTrace}`);
         toLogColours.push(`\n${stackTrace}`);
         this.logSeparately(toLogColours.map(elem => typeof elem === "string" ? chalk.redBright(elem) : elem), toLog);
+    }
+
+    wsClose(url) {
+        let prefix = this.getPrefix("wsClose");
+        this.logSeparately([chalk.green(prefix), chalk.green("Websocket connection on url"), chalk.cyan(url),
+            chalk.green("closed")], ['\n' + prefix, "Websocket connection on url",
+            url, "closed"]);
+    }
+
+    wsTerminate(url) {
+        let prefix = this.getPrefix("wsTerminate");
+        this.logSeparately([chalk.green(prefix), chalk.green("Websocket connection on url"), chalk.cyan(url),
+            chalk.green("terminated")], ['\n' + prefix, "Websocket connection on url",
+            url, "terminated"]);
     }
 }
