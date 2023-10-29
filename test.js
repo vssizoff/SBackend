@@ -1,4 +1,10 @@
 import path from "path";
+import fs from "node:fs";
+import {execute, parse, buildSchema} from "graphql";
+
+let users = [], subscriptions = {
+        createUserSubscribe: []
+    }
 
 export default {
     get: {
@@ -70,6 +76,69 @@ export default {
                 if (data === "disconnect") connection.close();
                 if (data === "terminate") connection.terminate();
             });
+        }
+    },
+    gql: {
+        "/graphql": {
+            schema: buildSchema(fs.readFileSync("./schema.graphql", {encoding: "utf8"})),
+            query: {
+                getAllUsers() {
+                    return users;
+                },
+                getUser({id: ID}) {
+                    return users.find(({id}) => id === ID)
+                }
+            },
+            mutation: {
+                createUser({input: {username, data}}, {emit}) {
+                    users.push({id: Date.now() % 1000000000, username, data});
+                    // subscriptions.createUserSubscribe.forEach(func => func(users[users.length - 1]))
+                    emit("createUserSubscribe", users[users.length - 1]);
+                    return users[users.length - 1];
+                },
+                setData({id, data}, {emit, app}) {
+                    let index = 0;
+                    for (; index < users.length && users[index].id !== id; index++) {}
+                    if (index >= users.length) return;
+                    users[index].data = data;
+                    emit("userChangeSubscribe" + id + "data", {id, type: "data", user: users[index]});
+                    emit("userChangeSubscribe" + "data", {id, type: "data", user: users[index]});
+                    emit("userChangeSubscribe" + id, {id, type: "data", user: users[index]});
+                    emit("userChangeSubscribe", {id, type: "data", user: users[index]});
+                    return users[index];
+                },
+                setUsername({id, username}, {emit}) {
+                    let index = 0;
+                    for (; index < users.length && users[index].id !== id; index++) {}
+                    if (index >= users.length) return;
+                    users[index].username = username;
+                    emit("userChangeSubscribe" + id + "username", {id, type: "username", user: users[index]});
+                    emit("userChangeSubscribe" + "username", {id, type: "username", user: users[index]});
+                    emit("userChangeSubscribe" + id, {id, type: "username", user: users[index]});
+                    emit("userChangeSubscribe", {id, type: "data", user: users[index]});
+                    return users[index];
+                },
+                delUser({id}, {emit}) {
+                    let index = 0;
+                    for (; index < users.length && users[index].id !== id; index++) {}
+                    if (index >= users.length) return false;
+                    let user = users[index];
+                    users.splice(index, 1);
+                    emit("delUserSubscribe", user);
+                    return true;
+                }
+            },
+            subscription: {
+                createUserSubscribe(_, {acceptConnection}) {
+                    acceptConnection("createUserSubscribe");
+                },
+                userChangeSubscribe({id, eventType}, {acceptConnection}) {
+                    acceptConnection(`userChangeSubscribe${id ?? ""}${(eventType ?? "").toLowerCase()}`);
+                },
+                delUserSubscribe(_, {acceptConnection}) {
+                    acceptConnection("delUserSubscribe");
+                }
+            }
         }
     }
 }

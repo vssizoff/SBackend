@@ -191,4 +191,8 @@ export default class Logger {
             chalk.green("terminated")], ['\n' + prefix, "Websocket connection on url",
             url, "terminated"]);
     }
+
+    gqlMissingData(url, body, query, headers) {
+        this.Log("graphqlMissingData", chalk.redBright, "Url:", url, "Body:", body, "Query:", query, "Headers:", headers)
+    }
 }

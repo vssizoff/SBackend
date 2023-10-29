@@ -1,14 +1,17 @@
 {
   "name": "sbackend",
-  "version": "0.1.0s10",
-  "description": "",
+  "version": "0.2.0s3",
+  "description": "Backend framework based on express",
   "main": "index.mjs",
   "author": "sizoff",
-  "license": "ISC",
   "dependencies": {
+    "@types/ws": "^8.5.7",
     "chalk": "^5.2.0",
-    "express": "^4.18.2",
+    "dotenv": "^16.0.3",
     "express-fileupload": "^1.4.0",
+    "graphql": "^16.8.1",
+    "websocket-express": "^3.1.0",
+    "ws": "^8.14.2",
     "xml-js": "^1.6.11"
   },
   "repository": {
@@ -22,8 +25,9 @@
   "readme": "README.md",
   "keywords": [
     "backend",
-    "headers",
-    "express"
-  ],
-  "types": "./index.d.ts"
+    "express",
+    "ws",
+    "websocket",
+    "graphql"
+  ]
 }

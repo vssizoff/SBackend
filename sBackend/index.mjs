@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import Logger from "./logger.mjs";
+import {wsMiddleware} from "./ws.mjs";
 import * as readline from "node:readline";
 import {defaultConfig} from "./types.mjs";
 import fileUpload from "express-fileupload";
@@ -12,8 +13,8 @@ import {responseHeadersMiddleware} from "./responseHeaders.mjs";
 import {requestBodyParserMiddleware} from "./requestBodyParser.mjs";
 import {statusChangeHandlersMiddleware} from "./statusChangeHandlers.mjs";
 import {afterRoute, autoNext, handlersFormat, wrapper} from "./handlers.mjs";
+import {GqlEventEmitter, gqlParser, onGqlError, onGqlMissingData} from "./gql.mjs";
 import {headersParserMiddleware, queryParserMiddleware, routeParamsParserMiddleware} from "./parsers.mjs";
-import {wsMiddleware} from "./ws.mjs";
 
 let log = console.log;
 
@@ -36,6 +37,7 @@ export default class SBackend {
     defaultKeyboardHandler = () => undefined;
     wrapperBeforeHandlers = [];
     wrapperAfterHandlers = [];
+    gqlEventEmitter = new GqlEventEmitter();
 
     constructor(config = defaultConfig) {
         this.setConfig(config);
@@ -176,6 +178,12 @@ export default class SBackend {
         if (type === "use") {
             return this.use(route, callback);
         }
+        if (type === "useHTTP") {
+            return this.useHTTP(route, callback);
+        }
+        if (type === "websocket") {
+            type = "ws";
+        }
         if (route[0] !== '/'){
             route = '/' + route;
         }
@@ -189,8 +197,12 @@ export default class SBackend {
     addHandlers(handlers) {
         handlers = handlersFormat(handlers, this);
         Object.keys(handlers).forEach(type => {
-            Object.keys(handlers[type]).forEach(route => {
+            if (type !== "gql" && type !== "graphql") Object.keys(handlers[type]).forEach(route => {
                 this.addHandler(route, type, handlers[type][route]);
+            });
+            else Object.keys(handlers[type]).forEach(route => {
+                let {schema, parser, onError, onMissingData, query, mutation, subscription} = handlers[type][route];
+                this.graphql(route, schema, {query, mutation, subscription}, parser, onError, onMissingData);
             });
         });
     }
@@ -233,6 +245,51 @@ export default class SBackend {
 
     websocket(route, callback, routePush = true) {
         this.addHandler(route, "ws", callback, routePush);
+    }
+
+    gql(route, schema, {query, mutation, subscription}, parser = gqlParser, onError = onGqlError, onMissingData = onGqlMissingData, routePush = true) {
+        async function func(data, rootValue, request, response) {
+            try {
+                data = await parser.apply(this, [data, schema, rootValue, request, response]);
+                if (response.ended) return;
+                response.status(200);
+                response.end(data);
+            }
+            catch (error) {
+                onError.apply(this, [error, request, response, data, schema, rootValue]);
+            }
+        }
+
+        this.useHTTP(route,  async (request, response) => {
+            let data = "";
+            if (request.body !== undefined && typeof request.body === "object" && "query" in request.body) data = request.body.query;
+            else if (request.parsedQuery !== undefined && typeof request.parsedQuery === "object" && "query" in request.parsedQuery) data = request.parsedQuery.query;
+            else if (request.parsedHeaders !== undefined && typeof request.parsedHeaders === "object" && "query" in request.parsedHeaders) data = request.parsedHeaders.query;
+            else return onMissingData.apply(this, [request, response]);
+            await func.apply(this, [data, {query, mutation}, request, response]);
+        }, false);
+
+        this.ws(route, async (request, response) => {
+            let data = "";
+            if (request.parsedQuery !== undefined && typeof request.parsedQuery === "object" && "query" in request.parsedQuery) data = request.parsedQuery.query;
+            else if (request.parsedHeaders !== undefined && typeof request.parsedHeaders === "object" && "query" in request.parsedHeaders) data = request.parsedHeaders.query;
+            else return onMissingData.apply(this, [request, response]);
+            try {
+                data = await parser.apply(this, [data, schema, {subscription}, request, response]);
+            }
+            catch (error) {
+                onError.apply(this, [error, request, response, data, schema, {subscription}]);
+            }
+        }, false);
+
+        if (routePush) {
+            this.routes.push({route, type: "graphql", query: Object.keys(query), mutation: Object.keys(mutation),
+                subscription: Object.keys(subscription)});
+        }
+    }
+
+    graphql(route, schema, rootValue, parser = gqlParser, onError = onGqlError, onMissingData = onGqlMissingData, routePush = true) {
+        this.gql(route, schema, rootValue, parser, onError, onMissingData, routePush);
     }
 
     addFolder(route, path, logging = true) {
@@ -278,9 +335,28 @@ export default class SBackend {
         }
         callback = wrapper(this, callback, route);
         this.express.use(...(route === undefined ? [callback] : [route, callback]));
-        this.expressUse.push(route === undefined ? [callback] : [route, callback]);
+        // this.expressUse.push(route === undefined ? [callback] : [route, callback]);
+        this.handlers.push({route, callback, type: "use"});
         if (route !== undefined && routePush) {
             this.routes.push({route, type: "use"});
+        }
+    }
+
+    useHTTP(routeOrCallback, callback = undefined, routePush = true) {
+        let route = routeOrCallback;
+        if (callback === undefined) {
+            callback = routeOrCallback;
+            route = undefined;
+        }
+        if (route !== undefined && route[0] !== '/') {
+            route = '/' + route;
+        }
+        callback = wrapper(this, callback, route);
+        this.express.useHTTP(...(route === undefined ? [callback] : [route, callback]));
+        // this.expressUse.push(route === undefined ? [callback] : [route, callback]);
+        this.handlers.push({route, callback, type: "useHTTP"});
+        if (route !== undefined && routePush) {
+            this.routes.push({route, type: "useHTTP"});
         }
     }
 
@@ -302,12 +378,6 @@ export default class SBackend {
     }
 
     start(callback = undefined, runEvents = true) {
-        // this.expressUse.forEach(value => {
-        //     this.express.use(...value);
-        // });
-        // this.handlers.forEach(handler => {
-        //     this.express[handler.type](handler.route, wrapper(this, handler.callback, handler.route));
-        // });
         this.server = this.express.listen(this.config.port, () => {
             let errorFunc = err => {
                 return this.logger.error("Error in start" + `\n${err.stack}`);
@@ -356,7 +426,9 @@ export default class SBackend {
             this.express.use(...value);
         });
         this.handlers.forEach(handler => {
-            this.express[handler.type](handler.route, wrapper(this, handler.callback, handler.route));
+            if (handler.route === undefined && handler.type === "use") this.express.use(wrapper(this, handler.callback, handler.route));
+            else if (handler.route === undefined && handler.type === "useHTTP") this.express.useHTTP(wrapper(this, handler.callback, handler.route));
+            else if (handler.route !== undefined) this.express[handler.type](handler.route, wrapper(this, handler.callback, handler.route));
         });
         if (rerunCallback) this.start(() => {
             if (callback !== undefined && typeof callback === "function") callback(this);
@@ -383,5 +455,9 @@ export default class SBackend {
             if (callback !== undefined && typeof callback === "function") callback(this);
             if (runEvents) this.onRestartCallbacks.forEach(fn => {fn(this)});
         }, false);
+    }
+
+    gqlEmit(event, data) {
+        this.gqlEventEmitter.emit(event, data);
     }
 }

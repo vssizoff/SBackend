@@ -1,5 +1,5 @@
 export function autoNext(request, response, next, route, ans) {
-    if (ans) {next();}
+    if (ans === true) {next();}
 }
 
 export function afterRoute(request, response, next, route) {

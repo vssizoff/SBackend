@@ -1,0 +1,35 @@
+#graphql
+type User {
+    id: Int
+    data: String
+    username: String
+}
+
+type UserChangeEvent {
+    id: Int
+    type: String
+    user: User
+}
+
+input UserInput {
+    data: String!
+    username: String!
+}
+
+type Query {
+    getAllUsers: [User]
+    getUser(id: Int!): User
+}
+
+type Mutation {
+    createUser(input: UserInput!): User
+    setData(id: Int!, data: String!): User
+    setUsername(id: Int!, username: String!): User
+    delUser(id: Int!): Boolean
+}
+
+type Subscription {
+    createUserSubscribe: User
+    userChangeSubscribe(id: Int, eventType: String): UserChangeEvent
+    delUserSubscribe: User
+}
