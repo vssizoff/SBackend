@@ -22,7 +22,7 @@ export function wrapper(app, func, route) {
             });
         }
         catch (error) {
-            app.logger.requestError(request.url, request.body, error.stack);
+            app.logger.requestError(request.url, request.body, "stack" in error ? error.stack : JSON.stringify(error));
             response.sendError(error);
         }
     }

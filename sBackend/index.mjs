@@ -467,3 +467,5 @@ export default class SBackend {
         this.gqlEventEmitter.emit(event, data);
     }
 }
+
+export function buildHandlers(handlers) {return handlers;}

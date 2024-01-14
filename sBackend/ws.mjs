@@ -23,7 +23,7 @@ export function wsMiddleware(request, response, next) {
                 }
                 catch (error) {
                     try {
-                        this.logger.wsError(request.baseUrl, data, error.stack);
+                        this.logger.wsError(request.baseUrl, data, "stack" in error ? error.stack : JSON.stringify(error));
                         let {autoLogWs, autoLogWsFull} = request;
                         request.autoLogWs = false;
                         request.autoLogWsFull = false;

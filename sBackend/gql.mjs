@@ -88,7 +88,7 @@ export function gqlParser(data, schema, rootValue, request, response, onError = 
 }
 
 export function onGqlError(error, request, response, data, schema, rootValue) {
-    this.logger.requestError(request.url, data, error.stack)
+    this.logger.requestError(request.url, data, "stack" in error ? error.stack : JSON.stringify(error))
     request.autoLogFull = false;
     request.autoLog = false;
     response.status(500);
