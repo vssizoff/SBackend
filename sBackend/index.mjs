@@ -15,6 +15,7 @@ import {statusChangeHandlersMiddleware} from "./statusChangeHandlers.mjs";
 import {afterRoute, autoNext, handlersFormat, wrapper} from "./handlers.mjs";
 import {GqlEventEmitter, gqlParser, onGqlError, onGqlMissingData} from "./gql.mjs";
 import {headersParserMiddleware, queryParserMiddleware, routeParamsParserMiddleware} from "./parsers.mjs";
+import {execute} from "./versions.mjs";
 
 let log = console.log;
 
@@ -22,7 +23,6 @@ export default class SBackend {
     config = defaultConfig
     logger
     express = new WebSocketExpress();
-    expressUse = [];
     handlers = [];
     keyboardCommands = [];
     routes = [];
@@ -38,6 +38,7 @@ export default class SBackend {
     wrapperBeforeHandlers = [];
     wrapperAfterHandlers = [];
     gqlEventEmitter = new GqlEventEmitter();
+    versions = [];
 
     constructor(config = defaultConfig) {
         this.setConfig(config);
@@ -127,18 +128,24 @@ export default class SBackend {
         console.log = this.logger.message.bind(this.logger);
     }
 
+    setVersions(versions) {
+        this.versions = versions;
+    }
+
+    addVersion(version) {
+        this.versions.push(version);
+    }
+
     initRl() {
         let app = this;
         console.log = function() {
             if (!app.rlStopped) {
                 app.readline.pause();
-                // @ts-ignore
                 app.readline.output.write('\x1b[2K\r');
             }
             log.apply(console, Array.prototype.slice.call(arguments));
             if (!app.rlStopped) {
                 app.readline.resume();
-                // @ts-ignore
                 app.readline._refreshLine();
             }
         }
@@ -164,34 +171,36 @@ export default class SBackend {
         this.readline.question(text + this.config.questionString, callback);
     }
 
-    addHandler(route, type, callback, routePush = true) {
-        type = type.toLowerCase();
-        if (type === "files") {
-            return this.addFile(route, callback);
-        }
-        if (type === "folders") {
-            return this.addFolder(route, callback);
-        }
-        if (type === "paths") {
-            return this.addPath(route, callback);
-        }
-        if (type === "use") {
-            return this.use(route, callback);
-        }
-        if (type === "useHTTP") {
-            return this.useHTTP(route, callback);
-        }
-        if (type === "websocket") {
-            type = "ws";
-        }
-        if (route[0] !== '/'){
-            route = '/' + route;
-        }
-        this.handlers.push({route, type, callback});
-        this.express[type](route, wrapper(this, callback, route));
-        if (routePush) {
-            this.routes.push({route, type});
-        }
+    addHandler(Route, type, callback, routePush = true) {
+        execute(Route, this.versions).forEach(route => {
+            type = type.toLowerCase();
+            if (type === "files") {
+                return this.addFile(route, callback);
+            }
+            if (type === "folders") {
+                return this.addFolder(route, callback);
+            }
+            if (type === "paths") {
+                return this.addPath(route, callback);
+            }
+            if (type === "use") {
+                return this.use(route, callback);
+            }
+            if (type === "useHTTP") {
+                return this.useHTTP(route, callback);
+            }
+            if (type === "websocket") {
+                type = "ws";
+            }
+            if (route[0] !== '/'){
+                route = '/' + route;
+            }
+            this.handlers.push({route, type, callback});
+            this.express[type](route, wrapper(this, callback, route));
+            if (routePush) {
+                this.routes.push({route, type});
+            }
+        });
     }
 
     addHandlers(handlers) {
@@ -422,9 +431,6 @@ export default class SBackend {
             this.readline.resume();
             this.rlStopped = false;
         }
-        this.expressUse.forEach(value => {
-            this.express.use(...value);
-        });
         this.handlers.forEach(handler => {
             if (handler.route === undefined && handler.type === "use") this.express.use(wrapper(this, handler.callback, handler.route));
             else if (handler.route === undefined && handler.type === "useHTTP") this.express.useHTTP(wrapper(this, handler.callback, handler.route));

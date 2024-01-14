@@ -6,6 +6,7 @@ import config from "./config.js";
 
 let app = new SBackend(config);
 
+
 app.on("stop", () => {app.logger.message("Server stopped")});
 app.on("pause", () => {app.logger.message("Server paused")});
 app.on("resume", () => {app.logger.message("Server resumed")});

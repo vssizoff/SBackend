@@ -2,9 +2,7 @@ import path from "path";
 import fs from "node:fs";
 import {execute, parse, buildSchema} from "graphql";
 
-let users = [], subscriptions = {
-        createUserSubscribe: []
-    }
+let users = [];
 
 export default {
     get: {
@@ -86,11 +84,12 @@ export default {
                     return users;
                 },
                 getUser({id: ID}) {
-                    return users.find(({id}) => id === ID)
+                    return {...users.find(({id}) => id === ID), test: "test"}
                 }
             },
             mutation: {
                 createUser({input: {username, data}}, {emit}) {
+                    console.log(arguments);
                     users.push({id: Date.now() % 1000000000, username, data});
                     // subscriptions.createUserSubscribe.forEach(func => func(users[users.length - 1]))
                     emit("createUserSubscribe", users[users.length - 1]);
