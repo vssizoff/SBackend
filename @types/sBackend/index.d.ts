@@ -112,7 +112,7 @@ export type WrapperAfterHandlerType = (this: SBackend, request: SBackendRequest,
 export type GqlContextType = {
     [key: string]: any,
     runEvent: Function, // TODO
-    acceptConnection: Function, // TODO
+    acceptConnection: (event: string) => void,
     request: SBackendRequest,
     response: SBackendResponse,
     schema: GraphQLSchema,
