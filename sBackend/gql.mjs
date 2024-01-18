@@ -1,4 +1,4 @@
-import {execute, parse, defaultFieldResolver} from "graphql";
+import {execute, parse} from "graphql";
 
 function wrapper(callback, name) {
     return function (input, context) {
