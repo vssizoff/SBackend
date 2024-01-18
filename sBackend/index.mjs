@@ -39,6 +39,7 @@ export default class SBackend {
     wrapperAfterHandlers = [];
     gqlEventEmitter = new GqlEventEmitter();
     versions = [];
+    wsConnections = [];
 
     constructor(config = defaultConfig) {
         this.setConfig(config);
@@ -417,6 +418,7 @@ export default class SBackend {
             this.readline.pause();
             this.rlStopped = true;
         }
+        for (let wsConnection of this.wsConnections) wsConnection.terminate();
         if (this.server.closeAllConnections) this.server.closeAllConnections();
         this.server.close(() => {
             if (callback !== undefined && typeof callback === "function") callback(this);

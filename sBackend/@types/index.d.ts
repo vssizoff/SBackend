@@ -4,7 +4,6 @@ import {WebSocketExpress, WSResponse} from "websocket-express";
 import * as readline from "node:readline";
 import * as http from "node:http";
 import {GraphQLSchema} from "graphql/type";
-import path from "path";
 import {PathLike} from "fs";
 import * as WebSocket from "ws";
 
@@ -183,6 +182,7 @@ export default class SBackend {
     wrapperAfterHandlers: Array<WrapperAfterHandlerType>;
     gqlEventEmitter: GqlEventEmitter;
     versions: Array<string>;
+    wsConnections: Array<WebSocket & WebSocketExtension>;
 
     constructor(config: Partial<ConfigType>);
 
@@ -246,7 +246,7 @@ export default class SBackend {
 
     addPath(route: string, path: PathLike, logging?: boolean): void;
 
-    addFilesJson(files: {[key: string]: string}, pathResolve: typeof path.resolve, logging?: boolean): void;
+    addFilesJson(files: {[key: string]: string}, pathResolve: (...args: Array<string>) => string, logging?: boolean): void;
 
     use(callback: HandlerCallbackType): void;
     use(route: string, callback: HandlerCallbackType, routePush?: boolean): void;

@@ -5,6 +5,7 @@ export function wsMiddleware(request, response, next) {
     let accept = response.accept.bind(response), reject = response.reject.bind(response);
     response.accept = async (...args) => {
         let connection = await accept(...args);
+        this.wsConnections.push(connection);
         let on = connection.on.bind(connection), send = connection.send.bind(connection),
             terminate = connection.terminate.bind(connection);
         connection.on = (...args) => {
