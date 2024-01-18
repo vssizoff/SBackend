@@ -1,0 +1,28 @@
+{
+  "name": "@types/sbackend",
+  "version": "0.2.0",
+  "description": "Types for SBackend",
+  "main": "index.js",
+  "types": "./index.d.ts",
+  "author": "sizoff",
+  "dependencies": {
+    "@types/ws": "^8.5.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vssizoff/SBackend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vssizoff/SBackend/issues"
+  },
+  "homepage": "https://github.com/vssizoff/SBackend#readme",
+  "keywords": [
+    "backend",
+    "express",
+    "ws",
+    "websocket",
+    "graphql"
+  ],
+  "private": false,
+  "license": "ISC"
+}

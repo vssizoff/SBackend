@@ -5,7 +5,7 @@ export type onGqlErrorType = (error: object, request: SBackendRequest, response:
 
 export type onGqlMissingDataType = (request: SBackendRequest, response: SBackendResponse) => void;
 
-export type gqlParserType = (data: string, schema: GraphQLSchema, rootValue: GqlRootValueType, request: SBackendRequest, response: SBackendResponse, onError: onGqlError, onMissingData: onGqlMissingData) => any | {data: any, errors: any} | undefined;
+export type gqlParserType = (data: string, schema: GraphQLSchema, rootValue: GqlRootValueType, request: SBackendRequest, response: SBackendResponse, onError: onGqlErrorType, onMissingData: onGqlMissingDataType) => any | {data: any, errors: any} | undefined;
 
 export let onGqlError: onGqlErrorType;
 export let onGqlMissingData: onGqlMissingDataType;

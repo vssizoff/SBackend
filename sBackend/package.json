@@ -1,8 +1,9 @@
 {
   "name": "sbackend",
-  "version": "0.2.0s3",
+  "version": "0.2.0s5",
   "description": "Backend framework based on express",
   "main": "index.mjs",
+  "types": "./@types/index.d.ts",
   "author": "sizoff",
   "dependencies": {
     "@types/ws": "^8.5.7",
