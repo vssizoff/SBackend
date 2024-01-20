@@ -23,6 +23,8 @@
 //     questionString?: string
 // };
 
+import {gqlParser, onGqlError, onGqlMissingData} from "./gql.mjs";
+
 export let defaultConfig = {
     port: process.env.PORT || 8080,
     name: "app",
@@ -47,3 +49,10 @@ export let defaultConfig = {
     },
     questionString: "> "
 };
+
+export let defaultGqlOptions = {
+    parser: gqlParser,
+    onError: onGqlError,
+    onMissingData: onGqlMissingData,
+    context: {}
+}

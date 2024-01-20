@@ -1,31 +1,87 @@
 import {execute, parse} from "graphql";
 
-function wrapper(callback, name) {
+export class GqlSubscription {
+    connection;
+    eventEmitter;
+    payload;
+    payloadGotHandlers = [];
+    id;
+    schema;
+    name;
+
+
+    constructor(connection, eventEmitter) {
+        this.connection = connection;
+        this.eventEmitter = eventEmitter;
+        connection.on("message", (data) => {
+            switch (data.type) {
+                case "connection_init":
+                    this.connection.send({type: "connection_ack"});
+                    break;
+                case "ping":
+                    this.connection.send({type: "pong"});
+                    break;
+                case "subscribe":
+                    this.payload = data.payload;
+                    this.id = data.id;
+                    this.payloadGotHandlers.forEach(func => func(this.payload));
+                    break;
+            }
+        });
+    }
+
+    send(data) {
+        this.connection.send({id: this.id, type: "next", payload: gqlExecuteOne(this.schema, this.payload.query, data, this.name, false)});
+    }
+
+    onMessage(callback) {
+        this.connection.on("message", callback);
+    }
+
+    onClose(callback) {
+        this.connection.on("close", callback);
+    }
+
+    onError(callback) {
+        this.connection.on("error", callback);
+    }
+
+    onOpen(callback) {
+        this.connection.on("open", callback);
+    }
+
+    onPayloadGot(callback) {
+        this.payloadGotHandlers.push(callback);
+    }
+
+    terminate() {
+        this.connection.terminate();
+    }
+
+    regEvent(event) {
+        this.eventEmitter.on(event, data => this.send(data));
+    }
+}
+
+function wrapper(callback) {
     return function (input, context) {
         try {
-            function runEvent(connection, data) {
-//                connection.send(execute({
-//                    schema: context.schema,
-//                    document: parse(context.data),
-//                    rootValue: {
-//                        [name]() {
-//                            return data;
-//                        }
-//                    }
-//                }));
-                let {errors, data: Data} = gqlExecuteOne(context.schema, context.data, data, name, false);
-                connection.send(errors === undefined ? {data: Data} : {errors, data: Data});
-            }
+            return callback.apply(context.app, [input, context]);
+        }
+        catch (error) {
+            let {request, response, data, schema, rootValue, onError, app} = context;
+            onError.apply(app, [error, request, response, data, schema, rootValue]);
+        }
+    }
+}
 
-            return callback.apply(this, [input, {
-                runEvent,
-                async acceptConnection(event) {
-                    let connection = await context.response.accept()
-                    context.app.gqlEventEmitter.on(event, data => runEvent(connection, data));
-                    return connection;
-                },
-                ...context
-            }]);
+function subscriptionWrapper(callback, name) {
+    return function (input, context) {
+        try {
+            let {app, subscription} = context;
+            subscription.name = name;
+            console.log(name);
+            return callback.apply(app, [input, context]);
         }
         catch (error) {
             let {request, response, data, schema, rootValue, onError, app} = context;
@@ -48,9 +104,11 @@ export function gqlExecuteOne(schema, data, resolver, name, throwErrors = true) 
 }
 
 export function gqlExecute(schema, data, {query, mutation, subscription}, context, throwErrors = true) {
+    console.log(query, mutation, subscription);
     let {errors, data: output} = execute({
         schema,
-        rootValue: Object.fromEntries(Object.entries({...query, ...mutation, ...subscription}).map(([key, func]) =>[key, typeof func === "function" ? wrapper(func, key) : func])),
+        rootValue: Object.fromEntries([...Object.entries({...query, ...mutation}).map(([key, func]) =>[key, typeof func === "function" ? wrapper(func, key) : func]),
+            ...Object.entries({...subscription}).map(([key, func]) =>[key, typeof func === "function" ? subscriptionWrapper(func, key) : func])]),
         contextValue: context,
         document: typeof data === "string" ? parse(data) : data
     });
@@ -61,7 +119,7 @@ export function gqlExecute(schema, data, {query, mutation, subscription}, contex
     else return {errors, data: output}
 }
 
-export function gqlParser(data, schema, rootValue, request, response, onError = onGqlError, onMissingData = onGqlMissingData) {
+export function gqlParser(data, schema, rootValue, request, response, context = {}, onError = onGqlError, onMissingData = onGqlMissingData) {
 //    return execute({
 //        schema,
 //        rootValue: Object.fromEntries(Object.entries(rootValue).map(([key, func]) => [key, wrapper(func, key)])),
@@ -77,13 +135,18 @@ export function gqlParser(data, schema, rootValue, request, response, onError = 
 //        document: parse(data)
 //    });
     return gqlExecute(schema, data, rootValue, {
+        ...context,
         request, response, schema, data, app: this, onError, onMissingData,
         onEmit: (event, callback) => {
             this.gqlEventEmitter.on(event, callback);
-            },
+        },
         emit: (event, data) => {
             this.gqlEventEmitter.emit(event, data);
-        }
+        },
+        // runEvent(connection, data0) {
+        //     let {errors, data: Data} = gqlExecuteOne(schema, data, data0, name, false);
+        //     connection.send(errors === undefined ? {data: Data} : {errors, data: Data});
+        // }
     }, false);
 }
 

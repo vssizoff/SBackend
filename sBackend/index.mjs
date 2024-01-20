@@ -13,7 +13,7 @@ import {responseHeadersMiddleware} from "./responseHeaders.mjs";
 import {requestBodyParserMiddleware} from "./requestBodyParser.mjs";
 import {statusChangeHandlersMiddleware} from "./statusChangeHandlers.mjs";
 import {afterRoute, autoNext, handlersFormat, wrapper} from "./handlers.mjs";
-import {GqlEventEmitter, gqlParser, onGqlError, onGqlMissingData} from "./gql.mjs";
+import {GqlEventEmitter, gqlParser, GqlSubscription, onGqlError, onGqlMissingData} from "./gql.mjs";
 import {headersParserMiddleware, queryParserMiddleware, routeParamsParserMiddleware} from "./parsers.mjs";
 import {execute} from "./versions.mjs";
 
@@ -257,10 +257,10 @@ export default class SBackend {
         this.addHandler(route, "ws", callback, routePush);
     }
 
-    gql(route, schema, {query, mutation, subscription}, parser = gqlParser, onError = onGqlError, onMissingData = onGqlMissingData, routePush = true) {
+    gql(route, schema, {query, mutation, subscription}, {parser = gqlParser, onError = onGqlError, onMissingData = onGqlMissingData, context = {}}, routePush = true) {
         async function func(data, rootValue, request, response) {
             try {
-                data = await parser.apply(this, [data, schema, rootValue, request, response]);
+                data = await parser.apply(this, [data, schema, rootValue, request, response, context, onError, onMissingData]);
                 if (response.ended) return;
                 response.status(200);
                 response.end(data);
@@ -280,15 +280,32 @@ export default class SBackend {
         }, false);
 
         this.ws(route, async (request, response) => {
-            let data = "";
-            if (request.parsedQuery !== undefined && typeof request.parsedQuery === "object" && "query" in request.parsedQuery) data = request.parsedQuery.query;
-            else if (request.parsedHeaders !== undefined && typeof request.parsedHeaders === "object" && "query" in request.parsedHeaders) data = request.parsedHeaders.query;
-            else return onMissingData.apply(this, [request, response]);
+            // let data = "";
+            // if (request.parsedQuery !== undefined && typeof request.parsedQuery === "object" && "query" in request.parsedQuery) data = request.parsedQuery.query;
+            // else if (request.parsedHeaders !== undefined && typeof request.parsedHeaders === "object" && "query" in request.parsedHeaders) data = request.parsedHeaders.query;
+            // else return onMissingData.apply(this, [request, response]);
+            // try {
+            //     data = await parser.apply(this, [data, schema, {subscription}, request, response]);
+            // }
+            // catch (error) {
+            //     onError.apply(this, [error, request, response, data, schema, {subscription}]);
+            // }
             try {
-                data = await parser.apply(this, [data, schema, {subscription}, request, response]);
+                response.accept().then(connection => {
+                    let subscription0 = new GqlSubscription(connection, this.gqlEventEmitter);
+                    subscription0.onPayloadGot(async () => {
+                        try {
+                            if (subscription0.payload === undefined || typeof subscription0.payload !== "object" || !("query" in subscription0.payload)) onMissingData.apply(this, [request, response]);
+                            else await parser.apply(this, [subscription0.payload.query, schema, {subscription}, request, response, {...context, subscription}, onError, onMissingData]);
+                        }
+                        catch (error) {
+                            onError.apply(this, [error, request, response, subscription0.payload.query, schema, {subscription}]);
+                        }
+                    });
+                });
             }
             catch (error) {
-                onError.apply(this, [error, request, response, data, schema, {subscription}]);
+                onError.apply(this, [error, request, response, "", schema, {...subscription}]);
             }
         }, false);
 
