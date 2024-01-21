@@ -1,5 +1,5 @@
 import Logger from "./logger";
-import {GqlEventEmitter, gqlParserType, onGqlErrorType, onGqlMissingDataType} from "./gql";
+import {GqlEventEmitter, gqlParserType, GqlSubSubscription, onGqlErrorType, onGqlMissingDataType} from "./gql";
 import {WebSocketExpress, WSResponse} from "websocket-express";
 import * as readline from "node:readline";
 import * as http from "node:http";
@@ -119,16 +119,16 @@ export interface SBackendWSResponse extends WSResponse {
 export type WrapperBeforeHandlerType = (this: SBackend, request: SBackendRequest, response: SBackendResponse, next: () => void, route: string) => void;
 export type WrapperAfterHandlerType = (this: SBackend, request: SBackendRequest, response: SBackendResponse, next: () => void, route: string, ans: any) => any;
 
-interface NextMessageOptions {
+export interface NextMessageOptions {
     timeout?: number | undefined;
 }
 
-interface WebSocketMessage {
+export interface WebSocketMessage {
     data: Buffer;
     isBinary: boolean;
 }
 
-interface WebSocketExtension {
+export interface WebSocketExtension {
     nextMessage(options?: NextMessageOptions): Promise<WebSocketMessage>;
 }
 
@@ -141,14 +141,13 @@ export type GqlContextType = {
     app: SBackend,
     onError: onGqlErrorType,
     onMissingData: onGqlMissingDataType,
-    onEmit(event: string, callback: (data: string) => void): void,
     emit: Function
 };
 
 export type GqlSubscriptionContextType = GqlContextType & {
-    runEvent: (connection: WebSocket & WebSocketExtension, data: any) => void,
-    acceptConnection: (event: string) => WebSocket & WebSocketExtension,
-    response: SBackendResponse | SBackendWSResponse
+    response: SBackendWSResponse,
+    regEvent: typeof GqlSubSubscription.prototype.regEvent,
+    subscription: GqlSubSubscription
 };
 
 export type GqlHandlerType = (this: SBackend, input: {[key: string]: any}, context: GqlContextType) => any;
@@ -159,6 +158,15 @@ export type GqlRootValueType = {
     mutation?: {[key: string]: GqlHandlerType},
     subscription?: {[key: string]: GqlSubscriptionHandlerType}
 };
+
+export type GqlOptions = {
+    parser?: gqlParserType,
+    onError?: onGqlErrorType,
+    onMissingData?: onGqlMissingDataType,
+    context?: {
+        [key: string]: any
+    }
+}
 
 export type KeyboardCommandHandlerType = (data: string) => void;
 
@@ -236,9 +244,9 @@ export default class SBackend {
 
     websocket(route: string, callback: WSHandlerCallbackType, routePush?: boolean): void;
 
-    gql(route: string, schema: GraphQLSchema, rootValue: GqlRootValueType, parser?: gqlParserType, onError?: onGqlErrorType, onMissingData?: onGqlMissingDataType, routePush?: boolean): void;
+    gql(route: string, schema: GraphQLSchema, rootValue: GqlRootValueType, options?: GqlOptions, routePush?: boolean): void;
 
-    graphql(route: string, schema: GraphQLSchema, rootValue: GqlRootValueType, parser?: gqlParserType, onError?: onGqlErrorType, onMissingData?: onGqlMissingDataType, routePush?: boolean): void;
+    graphql(route: string, schema: GraphQLSchema, rootValue: GqlRootValueType, options?: GqlOptions, routePush?: boolean): void;
 
     addFolder(route: string, path: PathLike, logging?: boolean): void;
 

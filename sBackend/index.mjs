@@ -2,7 +2,7 @@ import * as fs from "fs";
 import Logger from "./logger.mjs";
 import {wsMiddleware} from "./ws.mjs";
 import * as readline from "node:readline";
-import {defaultConfig} from "./types.mjs";
+import {defaultConfig, defaultGqlOptions} from "./types.mjs";
 import fileUpload from "express-fileupload";
 import {endJSONMiddleware} from "./endJSON.mjs";
 import {WebSocketExpress} from 'websocket-express';
@@ -292,14 +292,14 @@ export default class SBackend {
             // }
             try {
                 response.accept().then(connection => {
-                    let subscription0 = new GqlSubscription(connection, this.gqlEventEmitter);
-                    subscription0.onPayloadGot(async () => {
+                    let subscription0 = new GqlSubscription(connection, this.gqlEventEmitter, schema);
+                    subscription0.onSubscribe(async (subSubscription) => {
                         try {
-                            if (subscription0.payload === undefined || typeof subscription0.payload !== "object" || !("query" in subscription0.payload)) onMissingData.apply(this, [request, response]);
-                            else await parser.apply(this, [subscription0.payload.query, schema, {subscription}, request, response, {...context, subscription}, onError, onMissingData]);
+                            if (subSubscription.payload === undefined || typeof subSubscription.payload !== "object" || !("query" in subSubscription.payload)) onMissingData.apply(this, [request, response]);
+                            else await parser.apply(this, [subSubscription.payload.query, schema, {subscription}, request, response, {...context, subscription: subSubscription}, onError, onMissingData]);
                         }
                         catch (error) {
-                            onError.apply(this, [error, request, response, subscription0.payload.query, schema, {subscription}]);
+                            onError.apply(this, [error, request, response, subSubscription.payload, schema, {subscription}]);
                         }
                     });
                 });
@@ -315,8 +315,8 @@ export default class SBackend {
         }
     }
 
-    graphql(route, schema, rootValue, parser = gqlParser, onError = onGqlError, onMissingData = onGqlMissingData, routePush = true) {
-        this.gql(route, schema, rootValue, parser, onError, onMissingData, routePush);
+    graphql(route, schema, rootValue, options = defaultGqlOptions, routePush = true) {
+        this.gql(route, schema, rootValue, options, routePush);
     }
 
     addFolder(route, path, logging = true) {

@@ -1,10 +1,11 @@
 import path from "path";
 import fs from "node:fs";
 import {execute, parse, buildSchema} from "graphql";
+import {buildHandlers} from "./sBackend/index.mjs";
 
 let users = [];
 
-export default {
+export default buildHandlers({
     get: {
         "/test_get"(request, response) {
             this.logger.message(request.url);
@@ -89,7 +90,6 @@ export default {
             },
             mutation: {
                 createUser({input: {username, data}}, {emit}) {
-                    console.log(arguments);
                     users.push({id: Date.now() % 1000000000, username, data});
                     // subscriptions.createUserSubscribe.forEach(func => func(users[users.length - 1]))
                     emit("createUserSubscribe", users[users.length - 1]);
@@ -128,16 +128,19 @@ export default {
                 }
             },
             subscription: {
-                createUserSubscribe(_, {acceptConnection}) {
-                    acceptConnection("createUserSubscribe");
+                createUserSubscribe(_, {regEvent}) {
+                    // acceptConnection("createUserSubscribe");
+                    regEvent("createUserSubscribe");
                 },
-                userChangeSubscribe({id, eventType}, {acceptConnection}) {
-                    acceptConnection(`userChangeSubscribe${id ?? ""}${(eventType ?? "").toLowerCase()}`);
+                userChangeSubscribe({id, eventType}, {regEvent}) {
+                    // acceptConnection(`userChangeSubscribe${id ?? ""}${(eventType ?? "").toLowerCase()}`);
+                    regEvent(`userChangeSubscribe${id ?? ""}${(eventType ?? "").toLowerCase()}`);
                 },
-                delUserSubscribe(_, {acceptConnection}) {
-                    acceptConnection("delUserSubscribe");
+                delUserSubscribe(_, {regEvent}) {
+                    // acceptConnection("delUserSubscribe");
+                    regEvent("delUserSubscribe");
                 }
             }
         }
     }
-}
+})
