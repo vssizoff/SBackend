@@ -281,4 +281,4 @@ export default class SBackend {
     gqlEmit(event: string, data: string): void;
 }
 
-export function buildHandlers(handlers: HandlersType): HandlersType;
+export function buildHandlers(...handlers: Array<HandlersType>): HandlersType;

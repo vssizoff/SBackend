@@ -487,4 +487,11 @@ export default class SBackend {
     }
 }
 
-export function buildHandlers(handlers) {return handlers;}
+export function buildHandlers(...handlersArray) {
+    let ans = {};
+    handlersArray.forEach(handlers => Object.entries(handlers).forEach(([type, typeHandlers]) => {
+        if (!(type in ans)) ans[type] = {};
+        ans[type] = {...ans[type], ...typeHandlers};
+    }));
+    return ans;
+}
