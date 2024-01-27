@@ -312,9 +312,9 @@ export default class SBackend {
         if (routePush) {
             this.routes.push({
                 route, type: "graphql",
-                query: query === undefined ? {} : Object.keys(query),
-                mutation: mutation === undefined ? {} : Object.keys(mutation),
-                subscription: subscription === undefined ? {} : Object.keys(subscription)
+                query: query === undefined ? [] : Object.keys(query),
+                mutation: mutation === undefined ? [] : Object.keys(mutation),
+                subscription: subscription === undefined ? [] : Object.keys(subscription)
             });
         }
     }
