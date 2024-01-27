@@ -39,9 +39,9 @@ export type HandlerType = {
 
 export type GqlHandlersHandler = GqlRootValueType & {
     schema: GraphQLSchema,
-    parser: gqlParserType,
-    onError: onGqlErrorType,
-    onMissingData: onGqlMissingDataType
+    parser?: gqlParserType,
+    onError?: onGqlErrorType,
+    onMissingData?: onGqlMissingDataType
 };
 
 export type HandlersType = {
