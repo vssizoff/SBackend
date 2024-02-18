@@ -99,7 +99,7 @@ export class SBackendRequest extends http.IncomingMessage {
 
 export class SBackendResponse extends http.ServerResponse {
     // @ts-ignore
-    end(data: string | object): void;
+    end(data?: string | object): void;
     sendError(error: any): void;
     onBeforeSend(func: (res: string | object, status: number, end: boolean) => void): void;
     onAfterSend(func: (res: string | object, status: number, end: boolean) => void): void;

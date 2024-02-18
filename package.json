@@ -1,10 +1,10 @@
 {
   "name": "SBackend test app",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "sbackend main.js"
+    "start": "sbackend run main.js -p 8888"
   },
   "author": "sizoff",
   "license": "ISC",

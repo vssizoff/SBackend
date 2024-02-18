@@ -1,6 +1,6 @@
 {
   "name": "sbackend",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Backend framework based on express",
   "main": "index.mjs",
   "types": "./@types/index.d.ts",

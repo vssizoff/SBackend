@@ -1,19 +1,25 @@
 import fs from "node:fs";
 
 JSON.safeStringify = (obj, indent = 2) => {
-    let cache = [];
-    const retVal = JSON.stringify(
-        obj,
-        (key, value) =>
-            typeof value === "object" && value !== null
-                ? cache.includes(value)
-                    ? undefined
-                    : cache.push(value) && value
-                : value,
-        indent
-    );
-    cache = null;
-    return retVal;
+    try {
+        let cache = [];
+        const retVal = JSON.stringify(
+            obj,
+            (key, value) =>
+                typeof value === "object" && value !== null
+                    ? cache.includes(value)
+                        ? undefined
+                        : cache.push(value) && value
+                    : typeof value === "bigint" ? Number(value) : value,
+            indent
+        );
+        cache = null;
+        return retVal;
+    }
+    catch (error) {
+        try {return JSON.stringify(obj)}
+        catch (error) {return ""}
+    }
 };
 
 Object.fromCircular = data => JSON.parse(JSON.safeStringify(data));
