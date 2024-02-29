@@ -122,8 +122,8 @@ export default class SBackend {
     }
 
     setConfig(config = defaultConfig) {
-        this.config = {...defaultConfig, ...config};
-        this.config.handlerConfig = {...defaultConfig.handlerConfig, ...config.handlerConfig}
+        this.config = {...this.config, ...config};
+        this.config.handlerConfig = {...this.config.handlerConfig, ...config.handlerConfig}
         this.initRl();
         this.logger = new Logger(this.config.logPath, console.log);
         console.log = this.logger.message.bind(this.logger);
@@ -409,7 +409,7 @@ export default class SBackend {
     }
 
     start(callback = undefined, runEvents = true) {
-        this.server = this.express.listen(this.config.port, () => {
+        this.server = this.express.listen(this.config.port, this.config.host, () => {
             let errorFunc = err => {
                 return this.logger.error("Error in start" + `\n${err.stack}`);
             };

@@ -9,6 +9,7 @@ import * as WebSocket from "ws";
 
 export type ConfigType = {
     port: string | number,
+    host: string,
     name: string,
     version: string,
     logPath: string,

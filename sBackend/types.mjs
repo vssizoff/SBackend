@@ -27,6 +27,7 @@ import {gqlParser, onGqlError, onGqlMissingData} from "./gql.mjs";
 
 export let defaultConfig = {
     port: process.env.PORT || 8080,
+    host: "localhost",
     name: "app",
     version: "0.0.0",
     logPath: null,
